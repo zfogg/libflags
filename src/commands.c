@@ -110,7 +110,7 @@ flags_command_t *flags_resolve_command(flags_command_t *root, int argc, char **a
     *used_default = true;
   flags_command_t *command = root;
   bool ended = false;
-  for (int i = 0; i < argc; ++i) {
+  for (int i = 1; i < argc; ++i) {
     if (!ended && !strcmp(argv[i], "--")) {
       ended = true;
       continue;

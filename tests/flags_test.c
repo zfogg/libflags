@@ -24,9 +24,9 @@ int main(void) {
                                            .storage_size = sizeof(char *)}};
   flags_schema_t s = {o, 2, 0, 0};
   flags_context_t *c = flags_create(&s, &v, sizeof v);
-  char *a[] = {"--file", "-", "--", "-literal", "--bad"};
+  char *a[] = {"prog", "--file", "-", "--", "-literal", "--bad"};
   flags_parse_result_t r;
-  assert(flags_parse(c, 5, a, &r));
+  assert(flags_parse(c, 6, a, &r));
   assert(r.options_ended);
   assert(r.positional_argc == 2);
   assert(!strcmp(r.positional_argv[0], "-literal"));
@@ -40,10 +40,10 @@ int main(void) {
   flags_command_t *root = flags_command_create(NULL, "ascii-chat", "root");
   flags_command_t *mirror = flags_command_create(root, "mirror", "mirror mode");
   assert(root && mirror && flags_command_set_default(root, mirror));
-  char *command_argv[] = {"--", "mirror"};
+  char *command_argv[] = {"prog", "--", "mirror"};
   int command_index = -1;
   bool used_default = false;
-  assert(flags_resolve_command(root, 2, command_argv, &command_index, &used_default) == mirror);
+  assert(flags_resolve_command(root, 3, command_argv, &command_index, &used_default) == mirror);
   assert(used_default && command_index == -1);
   flags_command_destroy(root);
   flags_destroy(c);

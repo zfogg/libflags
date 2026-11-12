@@ -268,7 +268,7 @@ bool flags_parse(flags_context_t *context, int argc, char **argv, flags_parse_re
   memset(result, 0, sizeof(*result));
   bool ended = false;
   int first = argc;
-  for (int i = 0; i < argc; ++i) {
+  for (int i = 1; i < argc; ++i) {
     char *argument = argv[i];
     if (!ended && strcmp(argument, "--") == 0) {
       ended = true;
@@ -301,6 +301,30 @@ bool flags_parse(flags_context_t *context, int argc, char **argv, flags_parse_re
     }
     if (first == argc)
       first = i;
+  }
+  result->options_ended = ended;
+  result->first_positional_index = first;
+  result->positional_argc = first == argc ? 0 : argc - first;
+  result->positional_argv = first == argc ? NULL : &argv[first];
+  return true;
+}
+
+bool flags_split_arguments(int argc, char **argv, flags_parse_result_t *result) {
+  if (argc < 0 || !result || (argc > 0 && !argv))
+    return false;
+  memset(result, 0, sizeof(*result));
+  int first = argc;
+  bool ended = false;
+  for (int i = 1; i < argc; ++i) {
+    if (!ended && strcmp(argv[i], "--") == 0) {
+      ended = true;
+      first = i + 1;
+      break;
+    }
+    if (!ended && argv[i][0] == '-' && argv[i][1] != '\0')
+      continue;
+    first = i;
+    break;
   }
   result->options_ended = ended;
   result->first_positional_index = first;

@@ -225,6 +225,8 @@ void flags_destroy(flags_context_t *);
 bool flags_set_defaults(flags_context_t *);
 /** Parses flags and returns borrowed positional arguments. */
 bool flags_parse(flags_context_t *, int, char **, flags_parse_result_t *);
+/** Splits options from positional arguments without requiring a value schema. */
+bool flags_split_arguments(int, char **, flags_parse_result_t *);
 /** Validates that a context has usable storage. */
 bool flags_validate(const flags_context_t *);
 /** Copies one option value into caller-provided storage. */
