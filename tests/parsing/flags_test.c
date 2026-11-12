@@ -126,6 +126,11 @@ int main(void) {
   flags_destroy(optional_context);
   flags_stream_value_t sv;
   assert(flags_classify_stream(&o[1], "-", &sv) && sv.kind == FLAGS_STREAM_STDIN);
+  flags_option_spec_t stdout_option = o[1];
+  stdout_option.dash_behavior = FLAGS_DASH_STDOUT;
+  assert(flags_classify_stream(&stdout_option, "-", &sv) && sv.kind == FLAGS_STREAM_STDOUT);
+  stdout_option.dash_behavior = FLAGS_DASH_NOT_ALLOWED;
+  assert(!flags_classify_stream(&stdout_option, "-", &sv));
   flags_environment_config_t environment = {.prefix = "TEST_", .derive_names = true};
   assert(flags_set_environment_config(c, &environment));
   environment.prefix = "MUTATED_";
