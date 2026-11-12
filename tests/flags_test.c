@@ -2,6 +2,10 @@
 #include <libflags/flags.h>
 #include <libflags/commands.h>
 #include <libflags/values.h>
+#include <libflags/config.h>
+#include <libflags/completions/completions.h>
+#include <libflags/manpage/manpage.h>
+#include <stdio.h>
 #include <string.h>
 typedef struct {
   bool verbose;
@@ -80,6 +84,12 @@ int main(void) {
   assert(!strcmp(environment_name, "TEST_FILE"));
   assert(flags_derive_environment_name("ASCII_CHAT_", "render-file", environment_name, sizeof(environment_name)));
   assert(!strcmp(environment_name, "ASCII_CHAT_RENDER_FILE"));
+  assert(flags_config_write_toml(c, "libflags-test.toml"));
+  values_t config_values = {0};
+  flags_context_t *config_context = flags_create(&s, &config_values, sizeof config_values);
+  assert(config_context && flags_config_load_toml(config_context, "libflags-test.toml"));
+  flags_destroy(config_context);
+  remove("libflags-test.toml");
   flags_value_t precedence = {.boolean = true};
   assert(flags_set(c, "verbose", &precedence, FLAGS_SOURCE_ENVIRONMENT));
   precedence.boolean = false;
@@ -89,6 +99,11 @@ int main(void) {
   assert(!flags_set(c, "verbose", &precedence, FLAGS_SOURCE_ENVIRONMENT));
   assert(flags_parse(c, 2, (char *[]){"prog", "--debug"}, &r));
   assert(flags_was_explicitly_set(c, "verbose"));
+  FILE *generated = tmpfile();
+  assert(generated);
+  assert(flags_completion_write(&s, "example", FLAGS_COMPLETION_BASH, generated));
+  assert(flags_manpage_write(&s, &(flags_manpage_metadata_t){.program_name = "example"}, generated));
+  fclose(generated);
   flags_command_t *root = flags_command_create(NULL, "ascii-chat", "root");
   flags_command_t *mirror = flags_command_create(root, "mirror", "mirror mode");
   assert(root && mirror && flags_command_set_default(root, mirror));

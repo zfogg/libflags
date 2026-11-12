@@ -22,6 +22,8 @@ static bool flags_config_apply_datum(flags_context_t *context, const flags_optio
   default:
     return false;
   }
+  if (flags_was_explicitly_set(context, option->name))
+    return true;
   return flags_set(context, option->name, &value, FLAGS_SOURCE_CONFIG);
 }
 
