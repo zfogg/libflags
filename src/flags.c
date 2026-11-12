@@ -1,6 +1,7 @@
 #include <libflags/flags.h>
 #include <libflags/values.h>
 #include <libplatform/mutex.h>
+#include <libplatform/system.h>
 #include <libplatform/time.h>
 #include <libplatform/util/string.h>
 
@@ -601,7 +602,7 @@ bool flags_apply_environment(flags_context_t *context) {
     char name[256];
     if (!flags_environment_name(context, context->schema->options[i].name, name, sizeof(name)))
       continue;
-    const char *text = getenv(name);
+    const char *text = platform_getenv(name);
     if (!text)
       continue;
     flags_value_t value = {0};
