@@ -69,13 +69,6 @@ static size_t flags_find(const flags_schema_t *schema, const char *name) {
   return SIZE_MAX;
 }
 
-/** Duplicates a string without requiring an application allocator. */
-static char *flags_strdup(const char *text) {
-  if (!text)
-    return NULL;
-  return platform_strdup(text);
-}
-
 /** Records a monotonic-ish wall-clock change point for portable C11 builds. */
 static void flags_now(struct timespec *out) {
   time_ns_to_timespec(time_get_realtime_ns(), out);
@@ -230,7 +223,7 @@ bool flags_set(flags_context_t *context, const char *name, const flags_value_t *
   memcpy(&old, destination, option->storage_size < sizeof(old) ? option->storage_size : sizeof(old));
   if (option->type == FLAGS_TYPE_STRING && option->dynamic_string && option->storage_size == sizeof(char *)) {
     char **target = destination;
-    char *copy = flags_strdup(value->string);
+    char *copy = platform_strdup(value->string);
     if (value->string && !copy) {
       mutex_unlock(&context->mutex);
       return false;
@@ -289,7 +282,7 @@ bool flags_get_string(const flags_context_t *context, const char *name, char **o
   flags_value_t value = {0};
   if (!flags_get(context, name, &value))
     return false;
-  *out = flags_strdup(value.string);
+  *out = platform_strdup(value.string);
   return value.string == NULL || *out != NULL;
 }
 
@@ -553,7 +546,7 @@ void flags_log_value(flags_context_t *context, flags_log_level_t level, flags_lo
 bool flags_set_environment_config(flags_context_t *context, const flags_environment_config_t *config) {
   if (!context)
     return false;
-  char *prefix = config && config->prefix ? flags_strdup(config->prefix) : NULL;
+  char *prefix = config && config->prefix ? platform_strdup(config->prefix) : NULL;
   if (config && config->prefix && !prefix)
     return false;
   if (mutex_lock(&context->mutex) != 0) {
@@ -688,7 +681,7 @@ bool flags_runtime_apply_batch(flags_context_t *context, const flags_update_t *u
     }
     options[i] = &context->schema->options[index];
     if (options[i]->dynamic_string) {
-      owned_strings[i] = flags_strdup(updates[i].value.string);
+      owned_strings[i] = platform_strdup(updates[i].value.string);
       if (updates[i].value.string && !owned_strings[i]) {
         for (size_t j = 0; j <= i; ++j)
           free(owned_strings[j]);
