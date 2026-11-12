@@ -47,8 +47,7 @@ int main(void) {
   assert(r.positional_argc == 2 && v.positional_count == 2);
   assert(!strcmp(r.positional_argv[0], "-literal"));
   assert(!strcmp(v.file, "-"));
-  assert(flags_parse(c, 2, (char *[]){"prog", "--debug"}, &r));
-  assert(flags_was_explicitly_set(c, "verbose"));
+  assert(flags_parse_positionals(c, 0, NULL));
   struct timespec last_read;
   flags_value_t read_value;
   assert(flags_get(c, "verbose", &read_value) && flags_last_read_at(c, "verbose", &last_read));
@@ -88,6 +87,8 @@ int main(void) {
   assert(flags_set(c, "verbose", &precedence, FLAGS_SOURCE_COMMAND_LINE));
   precedence.boolean = true;
   assert(!flags_set(c, "verbose", &precedence, FLAGS_SOURCE_ENVIRONMENT));
+  assert(flags_parse(c, 2, (char *[]){"prog", "--debug"}, &r));
+  assert(flags_was_explicitly_set(c, "verbose"));
   flags_command_t *root = flags_command_create(NULL, "ascii-chat", "root");
   flags_command_t *mirror = flags_command_create(root, "mirror", "mirror mode");
   assert(root && mirror && flags_command_set_default(root, mirror));
