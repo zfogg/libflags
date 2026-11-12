@@ -2,6 +2,15 @@
 
 #include <string.h>
 
+static void write_bash_option_words(const flags_option_spec_t *option, FILE *output) {
+  if (option->short_name)
+    fprintf(output, "-%c ", option->short_name);
+  fprintf(output, "--%s ", option->name);
+  for (size_t i = 0; i < option->alias_count; ++i)
+    if (option->aliases[i])
+      fprintf(output, "--%s ", option->aliases[i]);
+}
+
 bool flags_completion_write(const flags_schema_t *schema, const char *program, flags_completion_shell_t shell, FILE *output) {
   if (!schema || !program || !output)
     return false;
@@ -9,16 +18,27 @@ bool flags_completion_write(const flags_schema_t *schema, const char *program, f
   if (shell == FLAGS_COMPLETION_BASH) {
     fprintf(output, "_%s_complete() {\n  local cur=\"${COMP_WORDS[COMP_CWORD]}\"\n  COMPREPLY=( $(compgen -W \"", program);
     for (size_t i = 0; i < schema->option_count; ++i)
-      fprintf(output, "--%s ", schema->options[i].name);
+      write_bash_option_words(&schema->options[i], output);
     fprintf(output, "\" -- \"$cur\")\n}\ncomplete -F _%s_complete %s\n", program, program);
   } else if (shell == FLAGS_COMPLETION_ZSH) {
     fprintf(output, "#compdef %s\n_arguments \\\n", program);
-    for (size_t i = 0; i < schema->option_count; ++i)
-      fprintf(output, "  '--%s[%s]' \\\n", schema->options[i].name, schema->options[i].description ? schema->options[i].description : schema->options[i].name);
+    for (size_t i = 0; i < schema->option_count; ++i) {
+      const flags_option_spec_t *option = &schema->options[i];
+      fprintf(output, "  '%s%s[%s]", option->short_name ? "-" : "--", option->short_name ? (char[2]){option->short_name, '\0'} : option->name,
+              option->description ? option->description : option->name);
+      if (option->short_name)
+        fprintf(output, "' '--%s[%s]", option->name, option->description ? option->description : option->name);
+      fprintf(output, "' \\\n");
+    }
     fprintf(output, "\n");
   } else if (shell == FLAGS_COMPLETION_FISH) {
-    for (size_t i = 0; i < schema->option_count; ++i)
-      fprintf(output, "complete -c %s -l %s -d '%s'\n", program, schema->options[i].name, schema->options[i].description ? schema->options[i].description : schema->options[i].name);
+    for (size_t i = 0; i < schema->option_count; ++i) {
+      const flags_option_spec_t *option = &schema->options[i];
+      fprintf(output, "complete -c %s -l %s", program, option->name);
+      if (option->short_name)
+        fprintf(output, " -s %c", option->short_name);
+      fprintf(output, " -d '%s'\n", option->description ? option->description : option->name);
+    }
   } else {
     return false;
   }
