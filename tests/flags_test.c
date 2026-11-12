@@ -6,7 +6,17 @@
 typedef struct {
   bool verbose;
   const char *file;
+  int positional_count;
 } values_t;
+
+static bool count_positional(flags_context_t *context, const char *text, void *user_data) {
+  (void)context;
+  (void)text;
+  int *count = user_data;
+  ++*count;
+  return true;
+}
+
 int main(void) {
   values_t v = {0};
   static const flags_option_spec_t o[] = {{.name = "verbose",
@@ -22,15 +32,18 @@ int main(void) {
                                            .argument_requirement = FLAGS_ARGUMENT_REQUIRED,
                                            .dash_behavior = FLAGS_DASH_STDIN,
                                            .storage_offset = offsetof(values_t, file),
-                                           .storage_size = sizeof(char *)}};
-  flags_schema_t s = {o, 2, 0, 0};
+                                           .storage_size = sizeof(char *),
+                                           .dynamic_string = true}};
+  const flags_positional_spec_t positionals[] = {{.name = "files", .metavar = "FILE...", .arity = FLAGS_POSITIONAL_ONE_OR_MORE, .parse = count_positional, .user_data = &v.positional_count}};
+  flags_schema_t s = {o, 2, positionals, 1, FLAGS_POSITIONAL_STOP};
   flags_context_t *c = flags_create(&s, &v, sizeof v);
   char *a[] = {"prog", "--file", "-", "--", "-literal", "--bad"};
   flags_parse_result_t r;
   assert(flags_parse(c, 6, a, &r));
   assert(r.options_ended);
-  assert(r.positional_argc == 2);
+  assert(r.positional_argc == 2 && v.positional_count == 2);
   assert(!strcmp(r.positional_argv[0], "-literal"));
+  assert(!strcmp(v.file, "-"));
   flags_stream_value_t sv;
   assert(flags_classify_stream(&o[1], "-", &sv) && sv.kind == FLAGS_STREAM_STDIN);
   flags_environment_config_t environment = {.prefix = "TEST_", .derive_names = true};

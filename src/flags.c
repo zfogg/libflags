@@ -177,9 +177,10 @@ bool flags_set(flags_context_t *context, const char *name, const flags_value_t *
   if (option->dynamic_string && option->storage_size == sizeof(char *)) {
     char **target = destination;
     char *copy = flags_strdup(value->string);
-    if (value->string && !copy)
+    if (value->string && !copy) {
       mutex_unlock(&context->mutex);
-    return false;
+      return false;
+    }
     free(*target);
     *target = copy;
   } else {
@@ -263,6 +264,38 @@ static bool flags_parse_value(flags_context_t *context, const flags_option_spec_
   }
 }
 
+static bool flags_parse_positionals(flags_context_t *context, const flags_parse_result_t *result) {
+  size_t offset = 0;
+  for (size_t i = 0; i < context->schema->positional_count; ++i) {
+    const flags_positional_spec_t *spec = &context->schema->positionals[i];
+    size_t remaining = (size_t)result->positional_argc - offset;
+    size_t count = 0;
+    switch (spec->arity) {
+    case FLAGS_POSITIONAL_OPTIONAL:
+      count = remaining > 0 ? 1 : 0;
+      break;
+    case FLAGS_POSITIONAL_REQUIRED:
+      if (remaining == 0)
+        return false;
+      count = 1;
+      break;
+    case FLAGS_POSITIONAL_ZERO_OR_MORE:
+      count = remaining;
+      break;
+    case FLAGS_POSITIONAL_ONE_OR_MORE:
+      if (remaining == 0)
+        return false;
+      count = remaining;
+      break;
+    }
+    for (size_t j = 0; j < count; ++j)
+      if (spec->parse && !spec->parse(context, result->positional_argv[offset + j], spec->user_data))
+        return false;
+    offset += count;
+  }
+  return offset == (size_t)result->positional_argc;
+}
+
 bool flags_parse(flags_context_t *context, int argc, char **argv, flags_parse_result_t *result) {
   if (!context || !result)
     return false;
@@ -300,14 +333,18 @@ bool flags_parse(flags_context_t *context, int argc, char **argv, flags_parse_re
         return false;
       continue;
     }
+    if (first == argc && !ended && context->schema->argument_order == FLAGS_POSITIONAL_ONLY_AFTER_TERMINATOR)
+      continue;
     if (first == argc)
       first = i;
+    if (!ended && context->schema->argument_order == FLAGS_POSITIONAL_STOP)
+      break;
   }
   result->options_ended = ended;
   result->first_positional_index = first;
   result->positional_argc = first == argc ? 0 : argc - first;
   result->positional_argv = first == argc ? NULL : &argv[first];
-  return true;
+  return flags_parse_positionals(context, result);
 }
 
 bool flags_split_arguments(int argc, char **argv, flags_parse_result_t *result) {

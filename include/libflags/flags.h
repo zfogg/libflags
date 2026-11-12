@@ -92,6 +92,13 @@ typedef enum flags_positional_arity {
   FLAGS_POSITIONAL_ONE_OR_MORE   /**< At least one value. */
 } flags_positional_arity_t;
 
+/** Policy for ordinary positional values encountered before `--`. */
+typedef enum flags_argument_order {
+  FLAGS_POSITIONAL_PERMUTE,              /**< Continue scanning for options. */
+  FLAGS_POSITIONAL_STOP,                 /**< Stop option parsing at the first value. */
+  FLAGS_POSITIONAL_ONLY_AFTER_TERMINATOR /**< Accept positionals only after `--`. */
+} flags_argument_order_t;
+
 /** The source used when assigning an option. */
 typedef enum flags_source {
   FLAGS_SOURCE_DEFAULT,      /**< A schema default. */
@@ -215,6 +222,7 @@ typedef struct flags_schema {
   size_t option_count;                        /**< Number of options. */
   const flags_positional_spec_t *positionals; /**< Positional descriptor array. */
   size_t positional_count;                    /**< Number of positionals. */
+  flags_argument_order_t argument_order;      /**< Positional/option ordering policy. */
 } flags_schema_t;
 
 /** Creates an independent context bound to caller-owned storage. */
