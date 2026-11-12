@@ -6,6 +6,8 @@
 #include <libflags/completions/completions.h>
 #include <libflags/manpage/manpage.h>
 #include <libflags/builder.h>
+#include <libflags/util/ip.h>
+#include <libflags/util/url.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,6 +35,17 @@ static void capture_log(const flags_log_event_t *event, void *user_data) {
 }
 
 int main(void) {
+  char address[64];
+  uint16_t port = 0;
+  assert(flags_is_valid_ipv4("192.0.2.1"));
+  assert(flags_is_valid_ipv6("[2001:db8::1]"));
+  assert(flags_parse_ip_with_port("[::1]:27224", address, sizeof address, &port) == 0);
+  assert(!strcmp(address, "::1") && port == 27224);
+  assert(flags_parse_address_with_optional_port("example.com", address, sizeof address, &port, 27224) == 0);
+  assert(!strcmp(address, "example.com") && port == 27224);
+  assert(flags_url_is_websocket_scheme("wss"));
+  assert(flags_url_is_tcp_scheme("tcp"));
+
   fixed_values_t fixed_values = {0};
   static const flags_option_spec_t fixed_option = {.name = "name", .type = FLAGS_TYPE_STRING, .storage_offset = offsetof(fixed_values_t, name), .storage_size = sizeof fixed_values.name};
   const flags_schema_t fixed_schema = {.options = &fixed_option, .option_count = 1};
