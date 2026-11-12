@@ -321,10 +321,11 @@ bool flags_parse(flags_context_t *context, int argc, char **argv, flags_parse_re
       if (option->argument_requirement != FLAGS_ARGUMENT_NONE) {
         if (argument[1] == '-' && argument[2] == '=')
           text = argument + 3;
-        else if (i + 1 < argc)
+        else if (i + 1 < argc && strcmp(argv[i + 1], "--") != 0) {
           text = argv[++i];
-        else if (option->argument_requirement == FLAGS_ARGUMENT_REQUIRED)
+        } else if (option->argument_requirement == FLAGS_ARGUMENT_REQUIRED) {
           return false;
+        }
       }
       flags_value_t value = {.boolean = true};
       if (text && !flags_parse_value(context, option, text, &value))

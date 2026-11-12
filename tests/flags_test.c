@@ -44,6 +44,16 @@ int main(void) {
   assert(r.positional_argc == 2 && v.positional_count == 2);
   assert(!strcmp(r.positional_argv[0], "-literal"));
   assert(!strcmp(v.file, "-"));
+  values_t optional_values = {0};
+  static const flags_option_spec_t optional_option[] = {
+      {.name = "label", .type = FLAGS_TYPE_BOOL, .argument_requirement = FLAGS_ARGUMENT_OPTIONAL, .storage_offset = offsetof(values_t, verbose), .storage_size = sizeof(bool)}};
+  static const flags_positional_spec_t optional_positionals[] = {{.name = "rest", .arity = FLAGS_POSITIONAL_ZERO_OR_MORE}};
+  flags_schema_t optional_schema = {optional_option, 1, optional_positionals, 1, FLAGS_POSITIONAL_PERMUTE};
+  flags_context_t *optional_context = flags_create(&optional_schema, &optional_values, sizeof optional_values);
+  char *optional_argv[] = {"prog", "--label", "--", "-literal"};
+  assert(optional_context && flags_parse(optional_context, 4, optional_argv, &r));
+  assert(r.options_ended && r.positional_argc == 1 && !strcmp(r.positional_argv[0], "-literal"));
+  flags_destroy(optional_context);
   flags_stream_value_t sv;
   assert(flags_classify_stream(&o[1], "-", &sv) && sv.kind == FLAGS_STREAM_STDIN);
   flags_environment_config_t environment = {.prefix = "TEST_", .derive_names = true};
