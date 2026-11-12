@@ -58,9 +58,12 @@ int main(void) {
   assert(flags_classify_stream(&o[1], "-", &sv) && sv.kind == FLAGS_STREAM_STDIN);
   flags_environment_config_t environment = {.prefix = "TEST_", .derive_names = true};
   assert(flags_set_environment_config(c, &environment));
+  environment.prefix = "MUTATED_";
   char environment_name[64];
   assert(flags_environment_name(c, "file", environment_name, sizeof(environment_name)));
   assert(!strcmp(environment_name, "TEST_FILE"));
+  assert(flags_derive_environment_name("ASCII_CHAT_", "render-file", environment_name, sizeof(environment_name)));
+  assert(!strcmp(environment_name, "ASCII_CHAT_RENDER_FILE"));
   flags_command_t *root = flags_command_create(NULL, "ascii-chat", "root");
   flags_command_t *mirror = flags_command_create(root, "mirror", "mirror mode");
   assert(root && mirror && flags_command_set_default(root, mirror));

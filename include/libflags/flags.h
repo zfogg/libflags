@@ -269,6 +269,8 @@ void flags_log(flags_context_t *, flags_log_level_t, flags_log_category_t, const
 bool flags_set_environment_config(flags_context_t *, const flags_environment_config_t *);
 /** Returns the derived or explicit environment name for an option. */
 bool flags_environment_name(const flags_context_t *, const char *, char *, size_t);
+/** Derives an environment name from a prefix and canonical option name. */
+bool flags_derive_environment_name(const char *, const char *, char *, size_t);
 /** Applies present environment variables using environment precedence. */
 bool flags_apply_environment(flags_context_t *);
 /** Reads one value and returns the context revision observed with it. */

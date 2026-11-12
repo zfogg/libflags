@@ -28,6 +28,7 @@ struct flags_context {
   flags_stat_t *stats;
   flags_logging_config_t logging;
   flags_environment_config_t environment;
+  char *environment_prefix;
   uint64_t revision;
   mutex_t mutex;
 };
@@ -99,6 +100,7 @@ void flags_destroy(flags_context_t *context) {
     }
   }
   mutex_destroy(&context->mutex);
+  free(context->environment_prefix);
   free(context->stats);
   free(context);
 }
@@ -441,7 +443,18 @@ void flags_log(flags_context_t *context, flags_log_level_t level, flags_log_cate
 bool flags_set_environment_config(flags_context_t *context, const flags_environment_config_t *config) {
   if (!context)
     return false;
+  char *prefix = config && config->prefix ? flags_strdup(config->prefix) : NULL;
+  if (config && config->prefix && !prefix)
+    return false;
+  if (mutex_lock(&context->mutex) != 0) {
+    free(prefix);
+    return false;
+  }
+  free(context->environment_prefix);
+  context->environment_prefix = prefix;
   context->environment = config ? *config : (flags_environment_config_t){0};
+  context->environment.prefix = context->environment_prefix;
+  mutex_unlock(&context->mutex);
   return true;
 }
 
@@ -453,22 +466,47 @@ bool flags_environment_name(const flags_context_t *context, const char *name, ch
     return false;
   const flags_option_spec_t *option = &context->schema->options[index];
   const char *source = option->environment_name;
+  bool derive_names = false;
+  char configured_prefix[256] = {0};
+  if (mutex_lock(&((flags_context_t *)context)->mutex) != 0)
+    return false;
+  derive_names = context->environment.derive_names;
+  if (context->environment.prefix) {
+    size_t prefix_length = strlen(context->environment.prefix);
+    if (prefix_length >= sizeof(configured_prefix))
+      prefix_length = sizeof(configured_prefix) - 1;
+    memcpy(configured_prefix, context->environment.prefix, prefix_length);
+    configured_prefix[prefix_length] = '\0';
+  }
+  mutex_unlock(&((flags_context_t *)context)->mutex);
   char derived[256];
-  if (!source && context->environment.derive_names) {
-    const char *prefix = context->environment.prefix ? context->environment.prefix : "";
-    size_t position = 0;
-    while (prefix[position] && position + 1 < sizeof(derived))
-      derived[position] = prefix[position], ++position;
-    for (size_t i = 0; name[i] && position + 1 < sizeof(derived); ++i) {
-      unsigned char character = (unsigned char)name[i];
-      derived[position++] = (char)(character == '-' ? '_' : toupper(character));
-    }
-    derived[position] = '\0';
+  if (!source && derive_names) {
+    if (!flags_derive_environment_name(configured_prefix, name, derived, sizeof(derived)))
+      return false;
     source = derived;
   }
   if (!source || strlen(source) + 1 > buffer_size)
     return false;
   memcpy(buffer, source, strlen(source) + 1);
+  return true;
+}
+
+bool flags_derive_environment_name(const char *prefix, const char *name, char *buffer, size_t buffer_size) {
+  if (!prefix || !name || !buffer || buffer_size == 0)
+    return false;
+  size_t position = 0;
+  for (size_t i = 0; prefix[i]; ++i) {
+    if (position + 1 >= buffer_size)
+      return false;
+    buffer[position++] = prefix[i];
+  }
+  for (size_t i = 0; name[i]; ++i) {
+    if (position + 1 >= buffer_size)
+      return false;
+    unsigned char character = (unsigned char)name[i];
+    buffer[position++] = (char)(character == '-' ? '_' : toupper(character));
+  }
+  buffer[position] = '\0';
   return true;
 }
 
