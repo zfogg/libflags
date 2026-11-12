@@ -44,9 +44,9 @@ static size_t flags_find(const flags_schema_t *schema, const char *name) {
   return SIZE_MAX;
 }
 
-/** Records a monotonic-ish wall-clock change point for portable C11 builds. */
+/** Records a monotonic change point for elapsed-time metadata. */
 static void flags_now(struct timespec *out) {
-  time_ns_to_timespec(time_get_realtime_ns(), out);
+  time_ns_to_timespec(time_get_ns(), out);
 }
 
 /** Returns the byte size required by a schema type. */
