@@ -92,6 +92,15 @@ static size_t flags_type_size(const flags_option_spec_t *option) {
   return sizeof(char *);
 }
 
+/** Returns the smallest storage width accepted for integer-compatible fields. */
+static size_t flags_type_min_size(const flags_option_spec_t *option) {
+  if (option->type == FLAGS_TYPE_INT64 || option->type == FLAGS_TYPE_PORT)
+    return sizeof(int32_t);
+  if (option->type == FLAGS_TYPE_UINT64 || option->type == FLAGS_TYPE_DURATION || option->type == FLAGS_TYPE_SIZE || option->type == FLAGS_TYPE_RATE)
+    return sizeof(uint32_t);
+  return flags_type_size(option);
+}
+
 flags_context_t *flags_create(const flags_schema_t *schema, void *storage, size_t storage_size) {
   if (!schema || (!storage && storage_size != 0))
     return NULL;
@@ -139,9 +148,7 @@ bool flags_validate(const flags_context_t *context) {
     return false;
   for (size_t i = 0; i < context->schema->option_count; ++i) {
     const flags_option_spec_t *option = &context->schema->options[i];
-    if (option->storage_offset > context->storage_size || option->storage_size > context->storage_size - option->storage_offset)
-      return false;
-    if (option->storage_size < flags_type_size(option))
+    if (option->storage_offset > context->storage_size || option->storage_size > context->storage_size - option->storage_offset || option->storage_size < flags_type_min_size(option))
       return false;
   }
   return true;
