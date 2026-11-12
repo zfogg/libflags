@@ -147,6 +147,12 @@ typedef struct flags_logging_config {
   flags_log_level_t minimum_level; /**< Lowest severity delivered. */
 } flags_logging_config_t;
 
+/** Configures automatic environment-variable lookup for one context. */
+typedef struct flags_environment_config {
+  const char *prefix; /**< Prefix for derived names, or NULL for none. */
+  bool derive_names;  /**< Derive names from option names when enabled. */
+} flags_environment_config_t;
+
 /** A value and its normalized stream interpretation. */
 typedef struct flags_stream_value {
   const char *text;         /**< The original, borrowed text. */
@@ -177,6 +183,7 @@ typedef struct flags_positional_spec {
 /** Describes one option and its binding into application storage. */
 typedef struct flags_option_spec {
   const char *name;                                  /**< Long name without hyphens. */
+  const char *environment_name;                      /**< Explicit environment name, or NULL to derive it. */
   char short_name;                                   /**< Optional one-character name. */
   flags_value_type_t type;                           /**< Storage/value type. */
   flags_option_behavior_t behavior;                  /**< Value, action, or callback behavior. */
@@ -242,3 +249,9 @@ bool flags_time_since_change(const flags_context_t *, const char *, uint64_t *);
 bool flags_set_logging(flags_context_t *, const flags_logging_config_t *);
 /** Emits a formatted diagnostic event when logging is enabled. */
 void flags_log(flags_context_t *, flags_log_level_t, flags_log_category_t, const char *, const char *, ...);
+/** Installs per-context automatic environment-variable configuration. */
+bool flags_set_environment_config(flags_context_t *, const flags_environment_config_t *);
+/** Returns the derived or explicit environment name for an option. */
+bool flags_environment_name(const flags_context_t *, const char *, char *, size_t);
+/** Applies present environment variables using environment precedence. */
+bool flags_apply_environment(flags_context_t *);

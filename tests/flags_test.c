@@ -31,6 +31,11 @@ int main(void) {
   assert(!strcmp(r.positional_argv[0], "-literal"));
   flags_stream_value_t sv;
   assert(flags_classify_stream(&o[1], "-", &sv) && sv.kind == FLAGS_STREAM_STDIN);
+  flags_environment_config_t environment = {.prefix = "TEST_", .derive_names = true};
+  assert(flags_set_environment_config(c, &environment));
+  char environment_name[64];
+  assert(flags_environment_name(c, "file", environment_name, sizeof(environment_name)));
+  assert(!strcmp(environment_name, "TEST_FILE"));
   flags_destroy(c);
   return 0;
 }
