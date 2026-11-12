@@ -18,6 +18,7 @@ typedef struct flags_command_resolution {
   bool used_default_command;  /**< Whether root default selection was used. */
   bool used_implicit_command; /**< Whether an option selected the command. */
   bool options_ended;         /**< Whether `--` occurred before resolution ended. */
+  int first_positional_index; /**< First non-option candidate, or -1. */
 } flags_command_resolution_t;
 
 /** Creates a command below an optional parent command. */

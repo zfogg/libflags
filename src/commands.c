@@ -142,7 +142,7 @@ static const flags_option_spec_t *find_option(flags_command_t *command, const ch
 bool flags_resolve_command_ex(flags_command_t *root, int argc, char **argv, flags_command_resolution_t *result) {
   if (!root || argc < 0 || (argc && !argv) || !result)
     return false;
-  *result = (flags_command_resolution_t){.command = root, .command_index = -1, .used_default_command = true};
+  *result = (flags_command_resolution_t){.command = root, .command_index = -1, .used_default_command = true, .first_positional_index = -1};
   flags_command_t *command = root;
   bool ended = false;
   for (int i = 1; i < argc; ++i) {
@@ -150,8 +150,11 @@ bool flags_resolve_command_ex(flags_command_t *root, int argc, char **argv, flag
       ended = true;
       continue;
     }
-    if (ended)
+    if (ended) {
+      if (result->first_positional_index < 0 && i < argc)
+        result->first_positional_index = i;
       break;
+    }
     if (argv[i][0] == '-') {
       const char *name = argv[i] + 1;
       if (*name == '-')
@@ -170,6 +173,8 @@ bool flags_resolve_command_ex(flags_command_t *root, int argc, char **argv, flag
         ++i;
       continue;
     }
+    if (result->first_positional_index < 0)
+      result->first_positional_index = i;
     flags_command_t *child = find_child(command, argv[i]);
     if (!child)
       break;

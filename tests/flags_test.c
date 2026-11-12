@@ -90,6 +90,7 @@ int main(void) {
   char *explicit_argv[] = {"prog", "--port", "8080", "client"};
   assert(client && flags_resolve_command_ex(root, 4, explicit_argv, &resolution));
   assert(resolution.command == client && resolution.command_index == 3);
+  assert(resolution.first_positional_index == 3);
   flags_command_destroy(root);
   bool enabled = false;
   uint64_t duration = 0;
