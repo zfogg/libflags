@@ -106,10 +106,13 @@ int main(void) {
   assert(!strcmp(environment_name, "TEST_FILE"));
   assert(flags_derive_environment_name("ASCII_CHAT_", "render-file", environment_name, sizeof(environment_name)));
   assert(!strcmp(environment_name, "ASCII_CHAT_RENDER_FILE"));
+  flags_value_t config_file = {.string = "quoted\\path\nnext\tline"};
+  assert(flags_set(c, "file", &config_file, FLAGS_SOURCE_RUNTIME));
   assert(flags_config_write_toml(c, "libflags-test.toml"));
   values_t config_values = {0};
   flags_context_t *config_context = flags_create(&s, &config_values, sizeof config_values);
   assert(config_context && flags_config_load_toml(config_context, "libflags-test.toml"));
+  assert(config_values.file && !strcmp(config_values.file, config_file.string));
   flags_destroy(config_context);
   remove("libflags-test.toml");
   flags_value_t precedence = {.boolean = true};

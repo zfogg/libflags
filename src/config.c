@@ -4,6 +4,40 @@
 #include <stdio.h>
 #include <string.h>
 
+static bool flags_config_write_string(FILE *output, const char *name, const char *value) {
+  if (fprintf(output, "%s = \"", name) < 0)
+    return false;
+  for (const unsigned char *cursor = (const unsigned char *)(value ? value : ""); *cursor; ++cursor) {
+    switch (*cursor) {
+    case '\\':
+      if (fputs("\\\\", output) == EOF)
+        return false;
+      break;
+    case '"':
+      if (fputs("\\\"", output) == EOF)
+        return false;
+      break;
+    case '\n':
+      if (fputs("\\n", output) == EOF)
+        return false;
+      break;
+    case '\r':
+      if (fputs("\\r", output) == EOF)
+        return false;
+      break;
+    case '\t':
+      if (fputs("\\t", output) == EOF)
+        return false;
+      break;
+    default:
+      if (fputc(*cursor, output) == EOF)
+        return false;
+      break;
+    }
+  }
+  return fputs("\"\n", output) != EOF;
+}
+
 static bool flags_config_apply_datum(flags_context_t *context, const flags_option_spec_t *option, toml_datum_t datum) {
   flags_value_t value = {0};
   switch (datum.type) {
@@ -82,8 +116,8 @@ bool flags_config_write_toml(const flags_context_t *context, const char *path) {
       fprintf(output, "%s = %.17g\n", option->name, value.number);
       break;
     default:
-      if (value.string)
-        fprintf(output, "%s = \"%s\"\n", option->name, value.string);
+      if (!flags_config_write_string(output, option->name, value.string))
+        success = false;
       break;
     }
   }
