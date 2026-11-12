@@ -146,7 +146,8 @@ bool flags_resolve_command_ex(flags_command_t *root, int argc, char **argv, flag
         result->first_positional_index = i;
       break;
     }
-    if (argv[i][0] == '-') {
+    /* A lone '-' is data, never an option or a command-resolution control token. */
+    if (argv[i][0] == '-' && argv[i][1] != '\0') {
       const char *name = argv[i] + 1;
       if (*name == '-')
         ++name;

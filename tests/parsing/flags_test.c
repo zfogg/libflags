@@ -195,6 +195,11 @@ int main(void) {
   assert(client && flags_resolve_command_ex(root, 4, explicit_argv, &resolution));
   assert(resolution.command == client && resolution.command_index == 3);
   assert(resolution.first_positional_index == 3);
+  char *stdin_argv[] = {"prog", "-"};
+  assert(flags_resolve_command_ex(root, 2, stdin_argv, &resolution));
+  assert(resolution.command == mirror);
+  assert(resolution.first_positional_index == 1);
+  assert(!resolution.options_ended);
   flags_command_destroy(root);
   bool enabled = false;
   uint64_t duration = 0;
