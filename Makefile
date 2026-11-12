@@ -1,4 +1,4 @@
-SOURCES := $(shell find . -type f \( -name '*.c' -o -name '*.h' \))
+SOURCES := $(shell git ls-files '*.c' '*.h')
 .PHONY: format format-check
 format:
 	clang-format -i $(SOURCES)
