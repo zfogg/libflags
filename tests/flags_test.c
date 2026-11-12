@@ -113,7 +113,9 @@ int main(void) {
   flags_context_t *config_context = flags_create(&s, &config_values, sizeof config_values);
   assert(config_context && flags_config_load_toml(config_context, "libflags-test.toml"));
   assert(config_values.file && !strcmp(config_values.file, config_file.string));
-  flags_destroy(config_context);
+  flags_destroy_preserving_storage(config_context);
+  assert(config_values.file && !strcmp(config_values.file, config_file.string));
+  free((void *)config_values.file);
   remove("libflags-test.toml");
   flags_value_t precedence = {.boolean = true};
   assert(flags_set(c, "verbose", &precedence, FLAGS_SOURCE_ENVIRONMENT));

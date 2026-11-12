@@ -237,6 +237,8 @@ flags_context_t *flags_create(const flags_schema_t *, void *, size_t);
 const flags_schema_t *flags_context_schema(const flags_context_t *);
 /** Destroys a context without destroying caller-owned storage. */
 void flags_destroy(flags_context_t *);
+/** Destroys a context while leaving dynamic values in bound storage. */
+void flags_destroy_preserving_storage(flags_context_t *);
 /** Copies schema defaults into bound storage. */
 bool flags_set_defaults(flags_context_t *);
 /** Parses flags and returns borrowed positional arguments. */

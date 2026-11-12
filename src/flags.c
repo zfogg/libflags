@@ -52,6 +52,7 @@ struct flags_context {
   flags_environment_config_t environment;
   char *environment_prefix;
   uint64_t revision;
+  bool preserve_storage;
   mutex_t mutex;
 };
 
@@ -132,7 +133,7 @@ void flags_destroy(flags_context_t *context) {
     return;
   for (size_t i = 0; i < context->schema->option_count; ++i) {
     const flags_option_spec_t *option = &context->schema->options[i];
-    if (option->dynamic_string && option->storage_size == sizeof(char *)) {
+    if (!context->preserve_storage && option->dynamic_string && option->storage_size == sizeof(char *)) {
       char **value = (char **)((char *)context->storage + option->storage_offset);
       free(*value);
       *value = NULL;
@@ -142,6 +143,13 @@ void flags_destroy(flags_context_t *context) {
   free(context->environment_prefix);
   free(context->stats);
   free(context);
+}
+
+void flags_destroy_preserving_storage(flags_context_t *context) {
+  if (!context)
+    return;
+  context->preserve_storage = true;
+  flags_destroy(context);
 }
 
 bool flags_validate(const flags_context_t *context) {
