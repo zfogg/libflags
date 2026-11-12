@@ -42,15 +42,23 @@ static bool flags_config_apply_datum(flags_context_t *context, const flags_optio
   flags_value_t value = {0};
   switch (datum.type) {
   case TOML_STRING:
+    if (option->type != FLAGS_TYPE_STRING)
+      return false;
     value.string = datum.u.s;
     break;
   case TOML_INT64:
+    if (option->type != FLAGS_TYPE_INT64 && option->type != FLAGS_TYPE_UINT64 && option->type != FLAGS_TYPE_PORT)
+      return false;
     value.integer = datum.u.int64;
     break;
   case TOML_FP64:
+    if (option->type != FLAGS_TYPE_DOUBLE && option->type != FLAGS_TYPE_PERCENT && option->type != FLAGS_TYPE_DECIBEL)
+      return false;
     value.number = datum.u.fp64;
     break;
   case TOML_BOOLEAN:
+    if (option->type != FLAGS_TYPE_BOOL)
+      return false;
     value.boolean = datum.u.boolean;
     break;
   default:
