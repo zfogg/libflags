@@ -7,6 +7,7 @@
 #include <libflags/manpage/manpage.h>
 #include <libflags/builder.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 typedef struct {
   bool verbose;
