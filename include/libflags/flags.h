@@ -255,6 +255,10 @@ bool flags_validate(const flags_context_t *);
 bool flags_get(const flags_context_t *, const char *, flags_value_t *);
 /** Validates and assigns one option value. */
 bool flags_set(flags_context_t *, const char *, const flags_value_t *, flags_source_t);
+/** Parses and assigns one textual option value through the descriptor parser. */
+bool flags_set_text(flags_context_t *, const char *, const char *, flags_source_t);
+/** Parses one textual option value without changing context storage. */
+bool flags_parse_text(const flags_context_t *, const char *, const char *, flags_value_t *);
 /** Frees a string returned by flags_get_string. */
 void flags_free_string(char *);
 /** Retrieves a duplicated string value. */

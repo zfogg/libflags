@@ -10,6 +10,8 @@ set(LIBFLAGS_DEPS_CACHE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/.deps-cache" CACHE PAT
 set(LIBFLAGS_LIBPLATFORM_SOURCE_DIR "" CACHE PATH "Existing libplatform source tree")
 set(LIBFLAGS_PCRE2_INCLUDE_DIRS "" CACHE STRING "PCRE2 include directories supplied by the embedding project")
 set(LIBFLAGS_PCRE2_LIBRARIES "" CACHE STRING "PCRE2 libraries or targets supplied by the embedding project")
+set(LIBFLAGS_YYJSON_INCLUDE_DIRS "" CACHE STRING "yyjson include directories supplied by the embedding project")
+set(LIBFLAGS_YYJSON_LIBRARIES "" CACHE STRING "yyjson libraries or targets supplied by the embedding project")
 if(NOT TARGET libplatform::libplatform)
   if(LIBFLAGS_LIBPLATFORM_SOURCE_DIR AND EXISTS "${LIBFLAGS_LIBPLATFORM_SOURCE_DIR}/CMakeLists.txt")
     set(LIBPLATFORM_BUILD_TESTS OFF CACHE BOOL "Disable libplatform standalone tests" FORCE)
@@ -40,6 +42,7 @@ else()
 endif()
 add_library(flags
   lib/options.c
+  lib/json.c
   lib/log.c
   lib/validation.c
   lib/util/ip.c
@@ -64,6 +67,13 @@ if(LIBFLAGS_PCRE2_INCLUDE_DIRS)
 endif()
 if(LIBFLAGS_PCRE2_LIBRARIES)
   target_link_libraries(flags PUBLIC ${LIBFLAGS_PCRE2_LIBRARIES})
+endif()
+if(LIBFLAGS_YYJSON_INCLUDE_DIRS)
+  target_include_directories(flags PRIVATE ${LIBFLAGS_YYJSON_INCLUDE_DIRS})
+  target_compile_definitions(flags PRIVATE LIBFLAGS_HAS_YYJSON=1)
+endif()
+if(LIBFLAGS_YYJSON_LIBRARIES)
+  target_link_libraries(flags PUBLIC ${LIBFLAGS_YYJSON_LIBRARIES})
 endif()
 if(LIBFLAGS_BUILD_TESTS)
   enable_testing()

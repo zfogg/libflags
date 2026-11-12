@@ -322,6 +322,23 @@ static bool flags_parse_value(flags_context_t *context, const flags_option_spec_
   }
 }
 
+bool flags_parse_text(const flags_context_t *context, const char *name, const char *text, flags_value_t *value) {
+  if (!context || !name || !text || !value)
+    return false;
+  for (size_t i = 0; i < context->schema->option_count; ++i) {
+    const flags_option_spec_t *option = &context->schema->options[i];
+    if (!strcmp(option->name, name)) {
+      return flags_parse_value((flags_context_t *)context, option, text, value);
+    }
+  }
+  return false;
+}
+
+bool flags_set_text(flags_context_t *context, const char *name, const char *text, flags_source_t source) {
+  flags_value_t value = {0};
+  return flags_parse_text(context, name, text, &value) && flags_set(context, name, &value, source);
+}
+
 static bool flags_apply_positional_specs(flags_context_t *context, const flags_parse_result_t *result) {
   size_t offset = 0;
   for (size_t i = 0; i < context->schema->positional_count; ++i) {
