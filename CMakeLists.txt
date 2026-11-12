@@ -36,14 +36,22 @@ else()
     target_include_directories(libflags-tomlc17 PUBLIC "${tomlc17_SOURCE_DIR}/src")
   endif()
 endif()
-add_library(flags src/flags.c src/commands.c src/values.c src/builder.c src/config.c src/completions.c src/manpage.c src/manpage_formatter.c)
+add_library(flags
+  lib/options.c
+  lib/commands.c
+  lib/parsing/parsers.c
+  lib/builder/builder.c
+  lib/config/config.c
+  lib/completions/completions.c
+  lib/manpage/manpage.c
+  lib/manpage/formatter.c)
 add_library(libflags::flags ALIAS flags)
 target_include_directories(flags PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 target_compile_features(flags PUBLIC c_std_11)
 target_link_libraries(flags PUBLIC libplatform::libplatform libflags-tomlc17)
 if(LIBFLAGS_BUILD_TESTS)
   enable_testing()
-  add_executable(libflags-test tests/flags_test.c)
+  add_executable(libflags-test tests/parsing/flags_test.c)
   target_link_libraries(libflags-test PRIVATE flags)
   add_test(NAME libflags-test COMMAND libflags-test)
 endif()
