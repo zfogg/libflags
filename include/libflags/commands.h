@@ -27,4 +27,3 @@ flags_command_t *flags_resolve_command(flags_command_t *root, int argc, char **a
 const char *flags_command_name(const flags_command_t *command);
 /** Returns the command's parent, or NULL for a root command. */
 flags_command_t *flags_command_parent(const flags_command_t *command);
-

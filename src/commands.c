@@ -115,6 +115,8 @@ flags_command_t *flags_resolve_command(flags_command_t *root, int argc, char **a
       ended = true;
       continue;
     }
+    if (ended)
+      break;
     if (!ended && argv[i][0] == '-') {
       if (argv[i][1] == '-')
         continue;
@@ -134,6 +136,10 @@ flags_command_t *flags_resolve_command(flags_command_t *root, int argc, char **a
   return command;
 }
 
-const char *flags_command_name(const flags_command_t *command) { return command ? command->name : NULL; }
+const char *flags_command_name(const flags_command_t *command) {
+  return command ? command->name : NULL;
+}
 
-flags_command_t *flags_command_parent(const flags_command_t *command) { return command ? command->parent : NULL; }
+flags_command_t *flags_command_parent(const flags_command_t *command) {
+  return command ? command->parent : NULL;
+}
