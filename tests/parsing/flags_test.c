@@ -254,6 +254,8 @@ int main(void) {
   assert(!flags_runtime_apply_batch(regex_context, &(flags_update_t){.name = "token", .value = {.string = "123"}}, 1, flags_runtime_revision(regex_context), FLAGS_SOURCE_RUNTIME, NULL));
   assert(token == NULL);
   flags_destroy(regex_context);
+  assert(!flags_runtime_apply(c, "verbose", &(flags_value_t){.boolean = false}, flags_runtime_revision(c), FLAGS_SOURCE_DEFAULT, NULL));
+  assert(v.verbose);
   flags_destroy(c);
   return 0;
 }

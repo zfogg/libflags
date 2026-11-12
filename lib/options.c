@@ -660,6 +660,18 @@ bool flags_runtime_apply_batch(flags_context_t *context, const flags_update_t *u
     return false;
   }
   for (size_t i = 0; i < update_count; ++i) {
+    size_t index = (size_t)(options[i] - context->schema->options);
+    if (flags_source_priority(source) < flags_source_priority(context->stats[index].source)) {
+      mutex_unlock(&context->mutex);
+      for (size_t j = 0; j < update_count; ++j)
+        free(owned_strings[j]);
+      free(options);
+      free(old_values);
+      free(owned_strings);
+      return false;
+    }
+  }
+  for (size_t i = 0; i < update_count; ++i) {
     void *destination = (char *)context->storage + options[i]->storage_offset;
     memcpy(&old_values[i], destination, options[i]->storage_size < sizeof(old_values[i]) ? options[i]->storage_size : sizeof(old_values[i]));
     if (options[i]->dynamic_string) {
