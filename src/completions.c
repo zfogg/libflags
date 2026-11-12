@@ -14,11 +14,11 @@ bool flags_completion_write(const flags_schema_t *schema, const char *program, f
   } else if (shell == FLAGS_COMPLETION_ZSH) {
     fprintf(output, "#compdef %s\n_arguments \\\n", program);
     for (size_t i = 0; i < schema->option_count; ++i)
-      fprintf(output, "  '--%s[%s]' \\\n", schema->options[i].name, schema->options[i].name);
+      fprintf(output, "  '--%s[%s]' \\\n", schema->options[i].name, schema->options[i].description ? schema->options[i].description : schema->options[i].name);
     fprintf(output, "\n");
   } else if (shell == FLAGS_COMPLETION_FISH) {
     for (size_t i = 0; i < schema->option_count; ++i)
-      fprintf(output, "complete -c %s -l %s\n", program, schema->options[i].name);
+      fprintf(output, "complete -c %s -l %s -d '%s'\n", program, schema->options[i].name, schema->options[i].description ? schema->options[i].description : schema->options[i].name);
   } else {
     return false;
   }

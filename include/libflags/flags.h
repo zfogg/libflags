@@ -199,6 +199,8 @@ typedef struct flags_option_spec {
   const char *name;                                  /**< Long name without hyphens. */
   const char *const *aliases;                        /**< Alternate long names. */
   size_t alias_count;                                /**< Number of alternate names. */
+  const char *metavar;                               /**< Value placeholder for help and completion. */
+  const char *description;                           /**< Application-supplied help text. */
   const char *environment_name;                      /**< Explicit environment name, or NULL to derive it. */
   char short_name;                                   /**< Optional one-character name. */
   flags_value_type_t type;                           /**< Storage/value type. */

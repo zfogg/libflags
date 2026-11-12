@@ -11,7 +11,7 @@ bool flags_manpage_write(const flags_schema_t *schema, const flags_manpage_metad
   fprintf(output, ".SH OPTIONS\n");
   for (size_t i = 0; i < schema->option_count; ++i) {
     const flags_option_spec_t *option = &schema->options[i];
-    fprintf(output, ".TP\n.B \\\-\\-%s\n%s\n", option->name, option->secret ? "Sensitive value." : "Option value.");
+    fprintf(output, ".TP\n.B \\\-\\-%s\n%s\n", option->name, option->secret ? "Sensitive value." : (option->description ? option->description : "Option value."));
   }
   return !ferror(output);
 }
