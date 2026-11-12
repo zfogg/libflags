@@ -508,6 +508,15 @@ void flags_log(flags_context_t *context, flags_log_level_t level, flags_log_cate
   context->logging.callback(&event, context->logging.user_data);
 }
 
+void flags_log_value(flags_context_t *context, flags_log_level_t level, flags_log_category_t category, const char *option_name, const char *value) {
+  if (!context || !option_name)
+    return;
+  size_t index = flags_find(context->schema, option_name);
+  if (index == SIZE_MAX)
+    return;
+  flags_log(context, level, category, context->schema->options[index].name, "value=%s", context->schema->options[index].secret ? "<redacted>" : (value ? value : "<null>"));
+}
+
 bool flags_set_environment_config(flags_context_t *context, const flags_environment_config_t *config) {
   if (!context)
     return false;

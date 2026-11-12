@@ -277,6 +277,8 @@ bool flags_time_since_change(const flags_context_t *, const char *, uint64_t *);
 bool flags_set_logging(flags_context_t *, const flags_logging_config_t *);
 /** Emits a formatted diagnostic event when logging is enabled. */
 void flags_log(flags_context_t *, flags_log_level_t, flags_log_category_t, const char *, const char *, ...);
+/** Emits a value diagnostic, replacing secret values with a redaction marker. */
+void flags_log_value(flags_context_t *, flags_log_level_t, flags_log_category_t, const char *, const char *);
 /** Installs per-context automatic environment-variable configuration. */
 bool flags_set_environment_config(flags_context_t *, const flags_environment_config_t *);
 /** Returns the derived or explicit environment name for an option. */
