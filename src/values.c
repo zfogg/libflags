@@ -4,6 +4,88 @@
 #include <stdlib.h>
 #include <string.h>
 
+static char *trimmed_duplicate(const char *start, size_t length) {
+  while (length && isspace((unsigned char)*start))
+    ++start, --length;
+  while (length && isspace((unsigned char)start[length - 1]))
+    --length;
+  if (!length)
+    return NULL;
+  char *copy = malloc(length + 1);
+  if (!copy)
+    return NULL;
+  memcpy(copy, start, length);
+  copy[length] = '\0';
+  return copy;
+}
+
+void flags_free_string_list(flags_string_list_t *list) {
+  if (!list)
+    return;
+  for (size_t i = 0; i < list->count; ++i)
+    free(list->items[i]);
+  free(list->items);
+  *list = (flags_string_list_t){0};
+}
+
+bool flags_parse_string_list(const char *text, flags_string_list_t *out) {
+  if (!text || !out || !*text)
+    return false;
+  *out = (flags_string_list_t){0};
+  const char *cursor = text;
+  for (;;) {
+    const char *separator = strchr(cursor, ',');
+    size_t length = separator ? (size_t)(separator - cursor) : strlen(cursor);
+    char *item = trimmed_duplicate(cursor, length);
+    if (!item) {
+      flags_free_string_list(out);
+      return false;
+    }
+    char **items = realloc(out->items, (out->count + 1) * sizeof(*items));
+    if (!items) {
+      free(item);
+      flags_free_string_list(out);
+      return false;
+    }
+    out->items = items;
+    out->items[out->count++] = item;
+    if (!separator)
+      return true;
+    cursor = separator + 1;
+  }
+}
+
+void flags_free_int_list(flags_int_list_t *list) {
+  if (!list)
+    return;
+  free(list->items);
+  *list = (flags_int_list_t){0};
+}
+
+bool flags_parse_int_list(const char *text, flags_int_list_t *out) {
+  flags_string_list_t strings;
+  if (!out || !flags_parse_string_list(text, &strings))
+    return false;
+  *out = (flags_int_list_t){0};
+  out->items = calloc(strings.count, sizeof(*out->items));
+  if (!out->items) {
+    flags_free_string_list(&strings);
+    return false;
+  }
+  for (size_t i = 0; i < strings.count; ++i) {
+    char *end = NULL;
+    out->items[i] = strtoll(strings.items[i], &end, 10);
+    if (end == strings.items[i] || *end != '\0') {
+      flags_free_string_list(&strings);
+      flags_free_int_list(out);
+      return false;
+    }
+  }
+  out->count = strings.count;
+  flags_free_string_list(&strings);
+  return true;
+}
+
 static bool equal_case_insensitive(const char *left, const char *right) {
   while (*left && *right && tolower((unsigned char)*left) == tolower((unsigned char)*right)) {
     ++left;

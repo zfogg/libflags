@@ -99,6 +99,13 @@ int main(void) {
   assert(flags_parse_duration("500ms", &duration) && duration == 500000000ULL);
   assert(flags_parse_size("4KiB", &size) && size == 4096ULL);
   assert(flags_parse_decibel_or_auto("auto", &decibel) && decibel.automatic);
+  flags_string_list_t strings = {0};
+  assert(flags_parse_string_list("one, two ,three", &strings) && strings.count == 3);
+  assert(!strcmp(strings.items[1], "two"));
+  flags_free_string_list(&strings);
+  flags_int_list_t integers = {0};
+  assert(flags_parse_int_list("1, -2, 3", &integers) && integers.count == 3 && integers.items[1] == -2);
+  flags_free_int_list(&integers);
   flags_value_t update_value = {.boolean = true};
   flags_update_t update = {.name = "verbose", .value = update_value};
   uint64_t revision = 0;
