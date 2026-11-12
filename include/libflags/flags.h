@@ -231,6 +231,8 @@ typedef struct flags_schema {
 
 /** Creates an independent context bound to caller-owned storage. */
 flags_context_t *flags_create(const flags_schema_t *, void *, size_t);
+/** Returns the immutable schema associated with a context. */
+const flags_schema_t *flags_context_schema(const flags_context_t *);
 /** Destroys a context without destroying caller-owned storage. */
 void flags_destroy(flags_context_t *);
 /** Copies schema defaults into bound storage. */

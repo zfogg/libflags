@@ -113,6 +113,10 @@ flags_context_t *flags_create(const flags_schema_t *schema, void *storage, size_
   return context;
 }
 
+const flags_schema_t *flags_context_schema(const flags_context_t *context) {
+  return context ? context->schema : NULL;
+}
+
 void flags_destroy(flags_context_t *context) {
   if (!context)
     return;
