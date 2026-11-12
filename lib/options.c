@@ -597,13 +597,10 @@ bool flags_runtime_read(const flags_context_t *context, const char *name, flags_
 }
 
 bool flags_runtime_apply(flags_context_t *context, const char *name, const flags_value_t *value, uint64_t expected_revision, flags_source_t source, uint64_t *new_revision) {
-  if (!context || flags_runtime_revision(context) != expected_revision)
+  if (!context || !name || !value)
     return false;
-  if (!flags_set(context, name, value, source))
-    return false;
-  if (new_revision)
-    *new_revision = flags_runtime_revision(context);
-  return true;
+  const flags_update_t update = {.name = name, .value = *value};
+  return flags_runtime_apply_batch(context, &update, 1, expected_revision, source, new_revision);
 }
 
 uint64_t flags_runtime_revision(const flags_context_t *context) {
