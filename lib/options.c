@@ -325,13 +325,8 @@ static bool flags_parse_value(flags_context_t *context, const flags_option_spec_
 bool flags_parse_text(const flags_context_t *context, const char *name, const char *text, flags_value_t *value) {
   if (!context || !name || !text || !value)
     return false;
-  for (size_t i = 0; i < context->schema->option_count; ++i) {
-    const flags_option_spec_t *option = &context->schema->options[i];
-    if (!strcmp(option->name, name)) {
-      return flags_parse_value((flags_context_t *)context, option, text, value);
-    }
-  }
-  return false;
+  const flags_option_spec_t *option = flags_lookup(context->schema, name);
+  return option && flags_parse_value((flags_context_t *)context, option, text, value);
 }
 
 bool flags_set_text(flags_context_t *context, const char *name, const char *text, flags_source_t source) {
