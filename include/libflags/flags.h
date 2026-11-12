@@ -10,13 +10,55 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <time.h>
 
 /** A storage type understood by libflags. */
 typedef enum flags_value_type {
-  FLAGS_TYPE_BOOL,  /**< A boolean value. */
-  FLAGS_TYPE_INT64, /**< A signed 64-bit integer. */
-  FLAGS_TYPE_STRING /**< A borrowed string value. */
+  FLAGS_TYPE_BOOL,        /**< A boolean value. */
+  FLAGS_TYPE_INT64,       /**< A signed 64-bit integer. */
+  FLAGS_TYPE_UINT64,      /**< An unsigned 64-bit integer. */
+  FLAGS_TYPE_DOUBLE,      /**< A double-precision value. */
+  FLAGS_TYPE_STRING,      /**< An owned string value. */
+  FLAGS_TYPE_ENUM,        /**< An enum index. */
+  FLAGS_TYPE_PATH,        /**< A filesystem path. */
+  FLAGS_TYPE_FILE,        /**< A file path. */
+  FLAGS_TYPE_DIRECTORY,   /**< A directory path. */
+  FLAGS_TYPE_URL,         /**< A URL. */
+  FLAGS_TYPE_HOST,        /**< A host name. */
+  FLAGS_TYPE_ADDRESS,     /**< A host or network address. */
+  FLAGS_TYPE_ENDPOINT,    /**< A host, port, and optional scheme. */
+  FLAGS_TYPE_PORT,        /**< A network port. */
+  FLAGS_TYPE_DURATION,    /**< A duration in nanoseconds. */
+  FLAGS_TYPE_TIMESTAMP,   /**< A timestamp. */
+  FLAGS_TYPE_SIZE,        /**< A byte size with optional suffix. */
+  FLAGS_TYPE_RATE,        /**< A rate with optional suffix. */
+  FLAGS_TYPE_PERCENT,     /**< A percentage value. */
+  FLAGS_TYPE_DECIBEL,     /**< A decibel value or `auto`. */
+  FLAGS_TYPE_STRING_LIST, /**< A list of strings. */
+  FLAGS_TYPE_INT_LIST,    /**< A list of integers. */
+  FLAGS_TYPE_ENUM_LIST,   /**< A list of enum values. */
+  FLAGS_TYPE_COLOR,       /**< A color value. */
+  FLAGS_TYPE_COLOR_MODE,  /**< A terminal color mode. */
+  FLAGS_TYPE_LOG_LEVEL,   /**< A logging level. */
+  FLAGS_TYPE_CUSTOM       /**< A callback-defined value. */
 } flags_value_type_t;
+
+/** The operation applied when a flag is repeated. */
+typedef enum flags_operation {
+  FLAGS_VALUE_ASSIGN,   /**< Replace the current value. */
+  FLAGS_VALUE_TOGGLE,   /**< Toggle a boolean value. */
+  FLAGS_VALUE_ADD,      /**< Add a numeric value. */
+  FLAGS_VALUE_SUBTRACT, /**< Subtract a numeric value. */
+  FLAGS_VALUE_APPEND,   /**< Append to a list or string. */
+  FLAGS_VALUE_CYCLE     /**< Cycle through enum values. */
+} flags_operation_t;
+
+/** The behavior of a flag independent of its value type. */
+typedef enum flags_option_behavior {
+  FLAGS_BEHAVIOR_VALUE,   /**< Parse and store a value. */
+  FLAGS_BEHAVIOR_ACTION,  /**< Invoke an action when present. */
+  FLAGS_BEHAVIOR_CALLBACK /**< Invoke application callback behavior. */
+} flags_option_behavior_t;
 
 /** Whether a flag consumes a following command-line value. */
 typedef enum flags_argument_requirement {
@@ -59,12 +101,51 @@ typedef enum flags_source {
   FLAGS_SOURCE_RUNTIME       /**< A live runtime update. */
 } flags_source_t;
 
+/** A logging severity emitted by a context. */
+typedef enum flags_log_level { FLAGS_LOG_TRACE, FLAGS_LOG_DEBUG, FLAGS_LOG_INFO, FLAGS_LOG_WARNING, FLAGS_LOG_ERROR } flags_log_level_t;
+
+/** A category for a diagnostic event. */
+typedef enum flags_log_category { FLAGS_LOG_PARSE, FLAGS_LOG_VALIDATION, FLAGS_LOG_RUNTIME, FLAGS_LOG_JSON, FLAGS_LOG_CONFIG, FLAGS_LOG_COMMAND, FLAGS_LOG_MEMORY } flags_log_category_t;
+
 /** A typed value passed to or copied from the library. */
 typedef union flags_value {
-  bool boolean;       /**< Boolean representation. */
-  int64_t integer;    /**< Signed integer representation. */
-  const char *string; /**< String representation. */
+  bool boolean;              /**< Boolean representation. */
+  int64_t integer;           /**< Signed integer representation. */
+  uint64_t unsigned_integer; /**< Unsigned integer representation. */
+  double number;             /**< Floating-point representation. */
+  const char *string;        /**< String representation. */
 } flags_value_t;
+
+/** An opaque, independently usable parser instance. */
+typedef struct flags_context flags_context_t;
+
+/** Parses a textual value into its typed representation. */
+typedef bool (*flags_parse_callback_t)(flags_context_t *, const char *, flags_value_t *, void *);
+/** Validates a typed value before it is stored. */
+typedef bool (*flags_validate_callback_t)(const flags_context_t *, const char *, const flags_value_t *, char *, size_t, void *);
+/** Observes a successful value change after storage is updated. */
+typedef void (*flags_change_callback_t)(flags_context_t *, const char *, const flags_value_t *, const flags_value_t *, void *);
+
+/** A diagnostic event delivered to the instance logging hook. */
+typedef struct flags_log_event {
+  flags_log_level_t level;       /**< Event severity. */
+  flags_log_category_t category; /**< Event category. */
+  const char *message;           /**< Borrowed event text valid during callback. */
+  const char *option_name;       /**< Related option, if any. */
+  const char *command_name;      /**< Related command, if any. */
+  flags_source_t source;         /**< Origin of the operation. */
+  uint64_t revision;             /**< Context revision at emission. */
+} flags_log_event_t;
+
+/** Receives diagnostic events from one context. */
+typedef void (*flags_log_callback_t)(const flags_log_event_t *, void *);
+
+/** Configures optional per-context diagnostics. */
+typedef struct flags_logging_config {
+  flags_log_callback_t callback;   /**< Callback, or NULL to disable logging. */
+  void *user_data;                 /**< Callback user data. */
+  flags_log_level_t minimum_level; /**< Lowest severity delivered. */
+} flags_logging_config_t;
 
 /** A value and its normalized stream interpretation. */
 typedef struct flags_stream_value {
@@ -79,9 +160,6 @@ typedef struct flags_parse_result {
   char **positional_argv;     /**< Borrowed positional argument pointers. */
   int first_positional_index; /**< Index in the original argument vector. */
 } flags_parse_result_t;
-
-/** An opaque, independently usable parser instance. */
-typedef struct flags_context flags_context_t;
 
 /** Parse one positional value into application-owned state. */
 typedef bool (*flags_parse_positional_callback_t)(flags_context_t *, const char *, void *);
@@ -101,12 +179,21 @@ typedef struct flags_option_spec {
   const char *name;                                  /**< Long name without hyphens. */
   char short_name;                                   /**< Optional one-character name. */
   flags_value_type_t type;                           /**< Storage/value type. */
+  flags_option_behavior_t behavior;                  /**< Value, action, or callback behavior. */
+  flags_operation_t default_operation;               /**< Operation for repeated flags. */
   flags_argument_requirement_t argument_requirement; /**< Value cardinality. */
   flags_dash_behavior_t dash_behavior;               /**< Meaning of a value equal to `-`. */
   bool repeatable;                                   /**< Whether the flag may repeat. */
   size_t storage_offset;                             /**< Byte offset in application storage. */
   size_t storage_size;                               /**< Bound field size in bytes. */
   const void *default_value;                         /**< Optional default value. */
+  const char *const *enum_values;                    /**< Optional enum spellings. */
+  size_t enum_value_count;                           /**< Number of enum spellings. */
+  bool dynamic_string;                               /**< Whether strings are duplicated. */
+  flags_parse_callback_t parse;                      /**< Optional textual parser. */
+  flags_validate_callback_t validate;                /**< Optional validator. */
+  flags_change_callback_t on_change;                 /**< Optional change callback. */
+  void *user_data;                                   /**< Callback context. */
 } flags_option_spec_t;
 
 /** Immutable collection of option and positional descriptors. */
@@ -131,9 +218,27 @@ bool flags_validate(const flags_context_t *);
 bool flags_get(const flags_context_t *, const char *, flags_value_t *);
 /** Validates and assigns one option value. */
 bool flags_set(flags_context_t *, const char *, const flags_value_t *, flags_source_t);
+/** Frees a string returned by flags_get_string. */
+void flags_free_string(char *);
+/** Retrieves a duplicated string value. */
+bool flags_get_string(const flags_context_t *, const char *, char **);
 /** Classifies a string according to an option's dash metadata. */
 bool flags_classify_stream(const flags_option_spec_t *, const char *, flags_stream_value_t *);
 /** Reports whether an option was explicitly assigned. */
 bool flags_was_explicitly_set(const flags_context_t *, const char *);
 /** Returns the number of successful assignments to an option. */
 uint64_t flags_change_count(const flags_context_t *, const char *);
+/** Reports whether the current value differs from its default. */
+bool flags_changed_from_default(const flags_context_t *, const char *);
+/** Returns successful read count. */
+uint64_t flags_read_count(const flags_context_t *, const char *);
+/** Returns assignment-attempt count. */
+uint64_t flags_write_count(const flags_context_t *, const char *);
+/** Copies the last-change timestamp. */
+bool flags_last_changed_at(const flags_context_t *, const char *, struct timespec *);
+/** Returns elapsed nanoseconds since the last change. */
+bool flags_time_since_change(const flags_context_t *, const char *, uint64_t *);
+/** Installs or clears the context logging hook. */
+bool flags_set_logging(flags_context_t *, const flags_logging_config_t *);
+/** Emits a formatted diagnostic event when logging is enabled. */
+void flags_log(flags_context_t *, flags_log_level_t, flags_log_category_t, const char *, const char *, ...);

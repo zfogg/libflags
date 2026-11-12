@@ -7,8 +7,20 @@ typedef struct {
 } values_t;
 int main(void) {
   values_t v = {0};
-  static const flags_option_spec_t o[] = {{"verbose", 'v', FLAGS_TYPE_BOOL, FLAGS_ARGUMENT_NONE, FLAGS_DASH_LITERAL, 0, offsetof(values_t, verbose), sizeof(bool), 0},
-                                          {"file", 'f', FLAGS_TYPE_STRING, FLAGS_ARGUMENT_REQUIRED, FLAGS_DASH_STDIN, 0, offsetof(values_t, file), sizeof(char *), 0}};
+  static const flags_option_spec_t o[] = {{.name = "verbose",
+                                           .short_name = 'v',
+                                           .type = FLAGS_TYPE_BOOL,
+                                           .argument_requirement = FLAGS_ARGUMENT_NONE,
+                                           .dash_behavior = FLAGS_DASH_LITERAL,
+                                           .storage_offset = offsetof(values_t, verbose),
+                                           .storage_size = sizeof(bool)},
+                                          {.name = "file",
+                                           .short_name = 'f',
+                                           .type = FLAGS_TYPE_STRING,
+                                           .argument_requirement = FLAGS_ARGUMENT_REQUIRED,
+                                           .dash_behavior = FLAGS_DASH_STDIN,
+                                           .storage_offset = offsetof(values_t, file),
+                                           .storage_size = sizeof(char *)}};
   flags_schema_t s = {o, 2, 0, 0};
   flags_context_t *c = flags_create(&s, &v, sizeof v);
   char *a[] = {"--file", "-", "--", "-literal", "--bad"};
