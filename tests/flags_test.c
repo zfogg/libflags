@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <libflags/flags.h>
+#include <libflags/commands.h>
 #include <string.h>
 typedef struct {
   bool verbose;
@@ -36,6 +37,15 @@ int main(void) {
   char environment_name[64];
   assert(flags_environment_name(c, "file", environment_name, sizeof(environment_name)));
   assert(!strcmp(environment_name, "TEST_FILE"));
+  flags_command_t *root = flags_command_create(NULL, "ascii-chat", "root");
+  flags_command_t *mirror = flags_command_create(root, "mirror", "mirror mode");
+  assert(root && mirror && flags_command_set_default(root, mirror));
+  char *command_argv[] = {"--", "mirror"};
+  int command_index = -1;
+  bool used_default = false;
+  assert(flags_resolve_command(root, 2, command_argv, &command_index, &used_default) == mirror);
+  assert(used_default && command_index == -1);
+  flags_command_destroy(root);
   flags_destroy(c);
   return 0;
 }
