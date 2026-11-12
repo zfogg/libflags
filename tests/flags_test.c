@@ -124,6 +124,12 @@ int main(void) {
   FILE *generated = tmpfile();
   assert(generated);
   assert(flags_completion_write(&s, "example", FLAGS_COMPLETION_BASH, generated));
+  fflush(generated);
+  rewind(generated);
+  char completion_text[4096] = {0};
+  assert(fread(completion_text, 1, sizeof(completion_text) - 1, generated) > 0);
+  assert(strstr(completion_text, "-v") != NULL);
+  assert(strstr(completion_text, "--debug") != NULL);
   assert(flags_manpage_write(&s, &(flags_manpage_metadata_t){.program_name = "example"}, generated));
   fclose(generated);
   flags_command_t *root = flags_command_create(NULL, "ascii-chat", "root");
