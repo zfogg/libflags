@@ -40,6 +40,7 @@ else()
 endif()
 add_library(flags
   lib/options.c
+  lib/log.c
   lib/validation.c
   lib/util/ip.c
   lib/util/url.c

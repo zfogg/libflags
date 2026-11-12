@@ -1,4 +1,5 @@
 #include <libflags/flags.h>
+#include "internal/context.h"
 #include <libflags/validation.h>
 #include <libflags/values.h>
 #include <libplatform/mutex.h>
@@ -6,24 +7,11 @@
 #include <libplatform/time.h>
 #include <libplatform/util/string.h>
 
-#include <stdarg.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
-/** Per-option mutable metadata owned by one context. */
-typedef struct flags_stat {
-  flags_source_t source;
-  bool explicitly_set;
-  bool changed_from_default;
-  uint64_t change_count;
-  uint64_t read_count;
-  uint64_t write_count;
-  struct timespec last_changed;
-  struct timespec last_read;
-} flags_stat_t;
 
 static int flags_source_priority(flags_source_t source) {
   switch (source) {
@@ -42,20 +30,6 @@ static int flags_source_priority(flags_source_t source) {
   }
   return -1;
 }
-
-/** Private state for one independent parser instance. */
-struct flags_context {
-  const flags_schema_t *schema;
-  void *storage;
-  size_t storage_size;
-  flags_stat_t *stats;
-  flags_logging_config_t logging;
-  flags_environment_config_t environment;
-  char *environment_prefix;
-  uint64_t revision;
-  bool preserve_storage;
-  mutex_t mutex;
-};
 
 /** Finds an option by its canonical long name. */
 static size_t flags_find(const flags_schema_t *schema, const char *name) {
@@ -516,34 +490,6 @@ bool flags_time_since_change(const flags_context_t *context, const char *name, u
   }
   *out = (uint64_t)(now.tv_sec - then.tv_sec) * 1000000000ULL + (uint64_t)(now.tv_nsec - then.tv_nsec);
   return true;
-}
-
-bool flags_set_logging(flags_context_t *context, const flags_logging_config_t *config) {
-  if (!context)
-    return false;
-  context->logging = config ? *config : (flags_logging_config_t){0};
-  return true;
-}
-
-void flags_log(flags_context_t *context, flags_log_level_t level, flags_log_category_t category, const char *option_name, const char *format, ...) {
-  if (!context || !context->logging.callback || level < context->logging.minimum_level)
-    return;
-  char message[1024];
-  va_list arguments;
-  va_start(arguments, format);
-  vsnprintf(message, sizeof(message), format, arguments);
-  va_end(arguments);
-  flags_log_event_t event = {.level = level, .category = category, .message = message, .option_name = option_name, .revision = context->revision};
-  context->logging.callback(&event, context->logging.user_data);
-}
-
-void flags_log_value(flags_context_t *context, flags_log_level_t level, flags_log_category_t category, const char *option_name, const char *value) {
-  if (!context || !option_name)
-    return;
-  size_t index = flags_find(context->schema, option_name);
-  if (index == SIZE_MAX)
-    return;
-  flags_log(context, level, category, context->schema->options[index].name, "value=%s", context->schema->options[index].secret ? "<redacted>" : (value ? value : "<null>"));
 }
 
 bool flags_set_environment_config(flags_context_t *context, const flags_environment_config_t *config) {
