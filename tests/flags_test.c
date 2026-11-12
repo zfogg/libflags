@@ -44,6 +44,15 @@ int main(void) {
   assert(r.positional_argc == 2 && v.positional_count == 2);
   assert(!strcmp(r.positional_argv[0], "-literal"));
   assert(!strcmp(v.file, "-"));
+  int direct_positional_count = 0;
+  const flags_positional_spec_t direct_positionals[] = {
+      {.name = "items", .metavar = "ITEM...", .arity = FLAGS_POSITIONAL_ONE_OR_MORE, .parse = count_positional, .user_data = &direct_positional_count}};
+  flags_schema_t direct_schema = {NULL, 0, direct_positionals, 1, FLAGS_POSITIONAL_STOP};
+  flags_context_t *direct_context = flags_create(&direct_schema, NULL, 0);
+  char *direct_argv[] = {"first", "second"};
+  assert(direct_context && flags_parse_positionals(direct_context, 2, direct_argv));
+  assert(direct_positional_count == 2);
+  flags_destroy(direct_context);
   values_t optional_values = {0};
   static const flags_option_spec_t optional_option[] = {
       {.name = "label", .type = FLAGS_TYPE_BOOL, .argument_requirement = FLAGS_ARGUMENT_OPTIONAL, .storage_offset = offsetof(values_t, verbose), .storage_size = sizeof(bool)}};

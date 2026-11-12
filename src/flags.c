@@ -304,7 +304,7 @@ static bool flags_parse_value(flags_context_t *context, const flags_option_spec_
   }
 }
 
-static bool flags_parse_positionals(flags_context_t *context, const flags_parse_result_t *result) {
+static bool flags_apply_positional_specs(flags_context_t *context, const flags_parse_result_t *result) {
   size_t offset = 0;
   for (size_t i = 0; i < context->schema->positional_count; ++i) {
     const flags_positional_spec_t *spec = &context->schema->positionals[i];
@@ -334,6 +334,13 @@ static bool flags_parse_positionals(flags_context_t *context, const flags_parse_
     offset += count;
   }
   return offset == (size_t)result->positional_argc;
+}
+
+bool flags_parse_positionals(flags_context_t *context, int argc, char **argv) {
+  if (!context || argc < 0 || (argc > 0 && !argv))
+    return false;
+  flags_parse_result_t result = {.positional_argc = argc, .positional_argv = argv, .first_positional_index = 0};
+  return flags_apply_positional_specs(context, &result);
 }
 
 bool flags_parse(flags_context_t *context, int argc, char **argv, flags_parse_result_t *result) {
@@ -385,7 +392,7 @@ bool flags_parse(flags_context_t *context, int argc, char **argv, flags_parse_re
   result->first_positional_index = first;
   result->positional_argc = first == argc ? 0 : argc - first;
   result->positional_argv = first == argc ? NULL : &argv[first];
-  return flags_parse_positionals(context, result);
+  return flags_apply_positional_specs(context, result);
 }
 
 bool flags_split_arguments(int argc, char **argv, flags_parse_result_t *result) {
