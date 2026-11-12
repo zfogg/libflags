@@ -19,7 +19,10 @@ static bool count_positional(flags_context_t *context, const char *text, void *u
 
 int main(void) {
   values_t v = {0};
+  static const char *const verbose_aliases[] = {"debug"};
   static const flags_option_spec_t o[] = {{.name = "verbose",
+                                           .aliases = verbose_aliases,
+                                           .alias_count = 1,
                                            .short_name = 'v',
                                            .type = FLAGS_TYPE_BOOL,
                                            .argument_requirement = FLAGS_ARGUMENT_NONE,
@@ -34,7 +37,7 @@ int main(void) {
                                            .storage_offset = offsetof(values_t, file),
                                            .storage_size = sizeof(char *),
                                            .dynamic_string = true}};
-  const flags_positional_spec_t positionals[] = {{.name = "files", .metavar = "FILE...", .arity = FLAGS_POSITIONAL_ONE_OR_MORE, .parse = count_positional, .user_data = &v.positional_count}};
+  const flags_positional_spec_t positionals[] = {{.name = "files", .metavar = "FILE...", .arity = FLAGS_POSITIONAL_ZERO_OR_MORE, .parse = count_positional, .user_data = &v.positional_count}};
   flags_schema_t s = {o, 2, positionals, 1, FLAGS_POSITIONAL_STOP};
   flags_context_t *c = flags_create(&s, &v, sizeof v);
   char *a[] = {"prog", "--file", "-", "--", "-literal", "--bad"};
@@ -44,6 +47,11 @@ int main(void) {
   assert(r.positional_argc == 2 && v.positional_count == 2);
   assert(!strcmp(r.positional_argv[0], "-literal"));
   assert(!strcmp(v.file, "-"));
+  assert(flags_parse(c, 2, (char *[]){"prog", "--debug"}, &r));
+  assert(flags_was_explicitly_set(c, "verbose"));
+  struct timespec last_read;
+  flags_value_t read_value;
+  assert(flags_get(c, "verbose", &read_value) && flags_last_read_at(c, "verbose", &last_read));
   int direct_positional_count = 0;
   const flags_positional_spec_t direct_positionals[] = {
       {.name = "items", .metavar = "ITEM...", .arity = FLAGS_POSITIONAL_ONE_OR_MORE, .parse = count_positional, .user_data = &direct_positional_count}};

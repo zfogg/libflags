@@ -105,7 +105,8 @@ typedef enum flags_source {
   FLAGS_SOURCE_CONFIG,       /**< A configuration document. */
   FLAGS_SOURCE_ENVIRONMENT,  /**< An environment variable. */
   FLAGS_SOURCE_COMMAND_LINE, /**< A command-line flag. */
-  FLAGS_SOURCE_RUNTIME       /**< A live runtime update. */
+  FLAGS_SOURCE_RUNTIME,      /**< A live runtime update. */
+  FLAGS_SOURCE_CALLBACK      /**< An application callback update. */
 } flags_source_t;
 
 /** A logging severity emitted by a context. */
@@ -196,6 +197,8 @@ typedef struct flags_positional_spec {
 /** Describes one option and its binding into application storage. */
 typedef struct flags_option_spec {
   const char *name;                                  /**< Long name without hyphens. */
+  const char *const *aliases;                        /**< Alternate long names. */
+  size_t alias_count;                                /**< Number of alternate names. */
   const char *environment_name;                      /**< Explicit environment name, or NULL to derive it. */
   char short_name;                                   /**< Optional one-character name. */
   flags_value_type_t type;                           /**< Storage/value type. */
@@ -204,6 +207,7 @@ typedef struct flags_option_spec {
   flags_argument_requirement_t argument_requirement; /**< Value cardinality. */
   flags_dash_behavior_t dash_behavior;               /**< Meaning of a value equal to `-`. */
   bool repeatable;                                   /**< Whether the flag may repeat. */
+  bool secret;                                       /**< Redact this option in diagnostics. */
   size_t storage_offset;                             /**< Byte offset in application storage. */
   size_t storage_size;                               /**< Bound field size in bytes. */
   const void *default_value;                         /**< Optional default value. */
@@ -261,6 +265,8 @@ uint64_t flags_read_count(const flags_context_t *, const char *);
 uint64_t flags_write_count(const flags_context_t *, const char *);
 /** Copies the last-change timestamp. */
 bool flags_last_changed_at(const flags_context_t *, const char *, struct timespec *);
+/** Copies the last-read timestamp. */
+bool flags_last_read_at(const flags_context_t *, const char *, struct timespec *);
 /** Returns elapsed nanoseconds since the last change. */
 bool flags_time_since_change(const flags_context_t *, const char *, uint64_t *);
 /** Installs or clears the context logging hook. */

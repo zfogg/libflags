@@ -20,6 +20,7 @@ typedef struct flags_stat {
   uint64_t read_count;
   uint64_t write_count;
   struct timespec last_changed;
+  struct timespec last_read;
 } flags_stat_t;
 
 static int flags_source_priority(flags_source_t source) {
@@ -34,6 +35,8 @@ static int flags_source_priority(flags_source_t source) {
     return 3;
   case FLAGS_SOURCE_RUNTIME:
     return 4;
+  case FLAGS_SOURCE_CALLBACK:
+    return 5;
   }
   return -1;
 }
@@ -54,8 +57,12 @@ struct flags_context {
 /** Finds an option by its canonical long name. */
 static size_t flags_find(const flags_schema_t *schema, const char *name) {
   for (size_t i = 0; i < schema->option_count; ++i) {
-    if (strcmp(schema->options[i].name, name) == 0)
+    const flags_option_spec_t *option = &schema->options[i];
+    if (strcmp(option->name, name) == 0)
       return i;
+    for (size_t alias = 0; alias < option->alias_count; ++alias)
+      if (option->aliases[alias] && strcmp(option->aliases[alias], name) == 0)
+        return i;
   }
   return SIZE_MAX;
 }
@@ -234,6 +241,7 @@ bool flags_get(const flags_context_t *context, const char *name, flags_value_t *
     return false;
   memcpy(out, (const char *)context->storage + option->storage_offset, option->storage_size < sizeof(*out) ? option->storage_size : sizeof(*out));
   ++((flags_context_t *)context)->stats[index].read_count;
+  flags_now(&((flags_context_t *)context)->stats[index].last_read);
   mutex_unlock(&((flags_context_t *)context)->mutex);
   return true;
 }
@@ -257,6 +265,9 @@ static const flags_option_spec_t *flags_lookup(const flags_schema_t *schema, con
     const flags_option_spec_t *option = &schema->options[i];
     if (strcmp(option->name, name) == 0 || (option->short_name && name[0] == option->short_name && name[1] == '\0'))
       return option;
+    for (size_t alias = 0; alias < option->alias_count; ++alias)
+      if (option->aliases[alias] && strcmp(option->aliases[alias], name) == 0)
+        return option;
   }
   return NULL;
 }
@@ -449,6 +460,14 @@ bool flags_last_changed_at(const flags_context_t *context, const char *name, str
   if (i == SIZE_MAX || !out || context->stats[i].change_count == 0)
     return false;
   *out = context->stats[i].last_changed;
+  return true;
+}
+
+bool flags_last_read_at(const flags_context_t *context, const char *name, struct timespec *out) {
+  size_t i = context ? flags_find(context->schema, name) : SIZE_MAX;
+  if (i == SIZE_MAX || !out || context->stats[i].read_count == 0)
+    return false;
+  *out = context->stats[i].last_read;
   return true;
 }
 
