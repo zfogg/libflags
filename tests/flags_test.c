@@ -5,6 +5,7 @@
 #include <libflags/config.h>
 #include <libflags/completions/completions.h>
 #include <libflags/manpage/manpage.h>
+#include <libflags/builder.h>
 #include <stdio.h>
 #include <string.h>
 typedef struct {
@@ -22,6 +23,12 @@ static bool count_positional(flags_context_t *context, const char *text, void *u
 }
 
 int main(void) {
+  flags_schema_builder_t *builder = flags_schema_builder_create();
+  flags_option_spec_t builder_option = {.name = "builder-option", .type = FLAGS_TYPE_BOOL};
+  assert(builder && flags_schema_builder_add_option(builder, &builder_option));
+  const flags_schema_t *built_schema = flags_schema_builder_schema(builder);
+  assert(built_schema && built_schema->option_count == 1);
+  flags_schema_builder_destroy(builder);
   values_t v = {0};
   static const char *const verbose_aliases[] = {"debug"};
   static const flags_option_spec_t o[] = {{.name = "verbose",
