@@ -195,3 +195,20 @@ bool flags_parse_decibel_or_auto(const char *text, flags_decibel_t *out) {
   out->automatic = false;
   return true;
 }
+
+bool flags_parse_percent_or_auto(const char *text, flags_percent_t *out) {
+  if (!text || !out)
+    return false;
+  if (equal_case_insensitive(text, "auto")) {
+    out->value = 0.0;
+    out->automatic = true;
+    return true;
+  }
+  char *end = NULL;
+  double value = strtod(text, &end);
+  if (end == text || *end != '\0' || value < 0.0 || value > 100.0)
+    return false;
+  out->value = value;
+  out->automatic = false;
+  return true;
+}

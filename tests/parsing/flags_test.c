@@ -199,6 +199,9 @@ int main(void) {
   assert(flags_parse_duration("500ms", &duration) && duration == 500000000ULL);
   assert(flags_parse_size("4KiB", &size) && size == 4096ULL);
   assert(flags_parse_decibel_or_auto("auto", &decibel) && decibel.automatic);
+  flags_percent_t percent = {0};
+  assert(flags_parse_percent_or_auto("auto", &percent) && percent.automatic);
+  assert(flags_parse_percent_or_auto("37.5", &percent) && !percent.automatic && percent.value == 37.5);
   flags_string_list_t strings = {0};
   assert(flags_parse_string_list("one, two ,three", &strings) && strings.count == 3);
   assert(!strcmp(strings.items[1], "two"));

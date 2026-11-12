@@ -109,6 +109,15 @@ typedef enum flags_source {
   FLAGS_SOURCE_CALLBACK      /**< An application callback update. */
 } flags_source_t;
 
+/** A numeric value that can preserve an explicit `auto` spelling. */
+typedef struct flags_semantic_number {
+  double value;
+  bool automatic;
+} flags_semantic_number_t;
+
+typedef flags_semantic_number_t flags_decibel_t;
+typedef flags_semantic_number_t flags_percent_t;
+
 /** A logging severity emitted by a context. */
 typedef enum flags_log_level { FLAGS_LOG_TRACE, FLAGS_LOG_DEBUG, FLAGS_LOG_INFO, FLAGS_LOG_WARNING, FLAGS_LOG_ERROR } flags_log_level_t;
 
@@ -122,6 +131,8 @@ typedef union flags_value {
   uint64_t unsigned_integer; /**< Unsigned integer representation. */
   double number;             /**< Floating-point representation. */
   const char *string;        /**< String representation. */
+  flags_decibel_t decibel;   /**< Decibel value, including `auto`. */
+  flags_percent_t percent;   /**< Percentage value, including `auto`. */
 } flags_value_t;
 
 /** An opaque, independently usable parser instance. */

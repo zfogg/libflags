@@ -57,8 +57,10 @@ static size_t flags_type_size(const flags_option_spec_t *option) {
     return sizeof(int64_t);
   if (option->type == FLAGS_TYPE_UINT64 || option->type == FLAGS_TYPE_DURATION || option->type == FLAGS_TYPE_SIZE || option->type == FLAGS_TYPE_RATE)
     return sizeof(uint64_t);
-  if (option->type == FLAGS_TYPE_DOUBLE || option->type == FLAGS_TYPE_PERCENT || option->type == FLAGS_TYPE_DECIBEL)
+  if (option->type == FLAGS_TYPE_DOUBLE)
     return sizeof(double);
+  if (option->type == FLAGS_TYPE_PERCENT || option->type == FLAGS_TYPE_DECIBEL)
+    return sizeof(flags_semantic_number_t);
   return sizeof(char *);
 }
 
@@ -300,8 +302,7 @@ static bool flags_parse_value(flags_context_t *context, const flags_option_spec_
     out->number = strtod(text, &end);
     return end != text && *end == '\0';
   case FLAGS_TYPE_PERCENT:
-    out->number = strtod(text, &end);
-    return end != text && *end == '\0' && out->number >= 0.0 && out->number <= 100.0;
+    return flags_parse_percent_or_auto(text, &out->percent);
   case FLAGS_TYPE_ENUM: {
     size_t index = 0;
     if (!flags_parse_enum(text, option->enum_values, option->enum_value_count, &index))
@@ -310,11 +311,7 @@ static bool flags_parse_value(flags_context_t *context, const flags_option_spec_
     return true;
   }
   case FLAGS_TYPE_DECIBEL: {
-    flags_decibel_t decibel;
-    if (!flags_parse_decibel_or_auto(text, &decibel) || decibel.automatic)
-      return false;
-    out->number = decibel.value;
-    return true;
+    return flags_parse_decibel_or_auto(text, &out->decibel);
   }
   default:
     out->string = text;

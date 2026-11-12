@@ -117,6 +117,18 @@ bool flags_snapshot_json(const flags_context_t *context, char **out_json, uint64
     case FLAGS_TYPE_DOUBLE:
       yyjson_mut_obj_add_real(document, root, option->name, value.number);
       break;
+    case FLAGS_TYPE_DECIBEL:
+      if (value.decibel.automatic)
+        yyjson_mut_obj_add_str(document, root, option->name, "auto");
+      else
+        yyjson_mut_obj_add_real(document, root, option->name, value.decibel.value);
+      break;
+    case FLAGS_TYPE_PERCENT:
+      if (value.percent.automatic)
+        yyjson_mut_obj_add_str(document, root, option->name, "auto");
+      else
+        yyjson_mut_obj_add_real(document, root, option->name, value.percent.value);
+      break;
     default:
       if (value.string)
         yyjson_mut_obj_add_str(document, root, option->name, value.string);

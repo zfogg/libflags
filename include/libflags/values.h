@@ -6,12 +6,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-
-/** A decibel value that can represent automatic gain independently of zero. */
-typedef struct flags_decibel {
-  double value;   /**< Numeric decibel value. */
-  bool automatic; /**< Whether the value is `auto`. */
-} flags_decibel_t;
+#include <libflags/flags.h>
 
 /** An owned list of string values parsed from comma-separated text. */
 typedef struct flags_string_list {
@@ -35,6 +30,8 @@ bool flags_parse_size(const char *, uint64_t *);
 bool flags_parse_enum(const char *, const char *const *, size_t, size_t *);
 /** Parses a numeric decibel value with an optional `dB` suffix or `auto`. */
 bool flags_parse_decibel_or_auto(const char *, flags_decibel_t *);
+/** Parses a percentage or `auto`, preserving whether it was automatic. */
+bool flags_parse_percent_or_auto(const char *, flags_percent_t *);
 /** Parses a non-empty comma-separated string list. */
 bool flags_parse_string_list(const char *, flags_string_list_t *);
 /** Parses a non-empty comma-separated signed integer list. */
