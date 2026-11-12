@@ -64,6 +64,13 @@ int main(void) {
   assert(!strcmp(environment_name, "TEST_FILE"));
   assert(flags_derive_environment_name("ASCII_CHAT_", "render-file", environment_name, sizeof(environment_name)));
   assert(!strcmp(environment_name, "ASCII_CHAT_RENDER_FILE"));
+  flags_value_t precedence = {.boolean = true};
+  assert(flags_set(c, "verbose", &precedence, FLAGS_SOURCE_ENVIRONMENT));
+  precedence.boolean = false;
+  assert(flags_set(c, "verbose", &precedence, FLAGS_SOURCE_CONFIG));
+  assert(flags_set(c, "verbose", &precedence, FLAGS_SOURCE_COMMAND_LINE));
+  precedence.boolean = true;
+  assert(!flags_set(c, "verbose", &precedence, FLAGS_SOURCE_ENVIRONMENT));
   flags_command_t *root = flags_command_create(NULL, "ascii-chat", "root");
   flags_command_t *mirror = flags_command_create(root, "mirror", "mirror mode");
   assert(root && mirror && flags_command_set_default(root, mirror));

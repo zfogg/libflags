@@ -12,6 +12,7 @@
 
 /** Per-option mutable metadata owned by one context. */
 typedef struct flags_stat {
+  flags_source_t source;
   bool explicitly_set;
   bool changed_from_default;
   uint64_t change_count;
@@ -19,6 +20,22 @@ typedef struct flags_stat {
   uint64_t write_count;
   struct timespec last_changed;
 } flags_stat_t;
+
+static int flags_source_priority(flags_source_t source) {
+  switch (source) {
+  case FLAGS_SOURCE_DEFAULT:
+    return 0;
+  case FLAGS_SOURCE_ENVIRONMENT:
+    return 1;
+  case FLAGS_SOURCE_CONFIG:
+    return 2;
+  case FLAGS_SOURCE_COMMAND_LINE:
+    return 3;
+  case FLAGS_SOURCE_RUNTIME:
+    return 4;
+  }
+  return -1;
+}
 
 /** Private state for one independent parser instance. */
 struct flags_context {
@@ -131,6 +148,7 @@ bool flags_set_defaults(flags_context_t *context) {
       return false;
     context->stats[i].explicitly_set = false;
     context->stats[i].changed_from_default = false;
+    context->stats[i].source = FLAGS_SOURCE_DEFAULT;
     context->stats[i].change_count = 0;
     context->stats[i].write_count = 0;
   }
@@ -169,6 +187,10 @@ bool flags_set(flags_context_t *context, const char *name, const flags_value_t *
   if (mutex_lock(&context->mutex) != 0)
     return false;
   ++context->stats[index].write_count;
+  if (flags_source_priority(source) < flags_source_priority(context->stats[index].source)) {
+    mutex_unlock(&context->mutex);
+    return false;
+  }
   if (option->validate && !option->validate(context, name, value, NULL, 0, option->user_data)) {
     mutex_unlock(&context->mutex);
     return false;
@@ -190,6 +212,7 @@ bool flags_set(flags_context_t *context, const char *name, const flags_value_t *
   }
   context->stats[index].explicitly_set = source != FLAGS_SOURCE_DEFAULT;
   context->stats[index].changed_from_default = source != FLAGS_SOURCE_DEFAULT;
+  context->stats[index].source = source;
   ++context->stats[index].change_count;
   ++context->revision;
   flags_now(&context->stats[index].last_changed);
@@ -569,7 +592,7 @@ bool flags_runtime_apply_batch(flags_context_t *context, const flags_update_t *u
   }
   for (size_t i = 0; i < update_count; ++i) {
     size_t index = flags_find(context->schema, updates[i].name);
-    if (index == SIZE_MAX ||
+    if (index == SIZE_MAX || flags_source_priority(source) < flags_source_priority(context->stats[index].source) ||
         (context->schema->options[index].validate && !context->schema->options[index].validate(context, updates[i].name, &updates[i].value, NULL, 0, context->schema->options[index].user_data))) {
       free(options);
       free(old_values);
@@ -610,6 +633,7 @@ bool flags_runtime_apply_batch(flags_context_t *context, const flags_update_t *u
     size_t index = (size_t)(options[i] - context->schema->options);
     context->stats[index].explicitly_set = source != FLAGS_SOURCE_DEFAULT;
     context->stats[index].changed_from_default = source != FLAGS_SOURCE_DEFAULT;
+    context->stats[index].source = source;
     ++context->stats[index].write_count;
     ++context->stats[index].change_count;
   }
