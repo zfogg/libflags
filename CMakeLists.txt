@@ -42,6 +42,7 @@ add_library(flags
   lib/options.c
   lib/validation.c
   lib/util/ip.c
+  lib/util/url.c
   lib/commands.c
   lib/parsing/parsers.c
   lib/builder/builder.c
