@@ -127,6 +127,18 @@ static flags_command_t *find_child(flags_command_t *root, const char *name) {
   return NULL;
 }
 
+static const flags_option_spec_t *find_option(flags_command_t *command, const char *name, size_t length) {
+  for (flags_command_t *cursor = command; cursor; cursor = cursor->parent)
+    for (size_t i = 0; i < cursor->option_count; ++i) {
+      const flags_option_spec_t *option = cursor->options[i];
+      if (strlen(option->name) == length && strncmp(option->name, name, length) == 0)
+        return option;
+      if (length == 1 && option->short_name == name[0])
+        return option;
+    }
+  return NULL;
+}
+
 bool flags_resolve_command_ex(flags_command_t *root, int argc, char **argv, flags_command_resolution_t *result) {
   if (!root || argc < 0 || (argc && !argv) || !result)
     return false;
@@ -146,6 +158,7 @@ bool flags_resolve_command_ex(flags_command_t *root, int argc, char **argv, flag
         ++name;
       const char *equals = strchr(name, '=');
       size_t length = equals ? (size_t)(equals - name) : strlen(name);
+      const flags_option_spec_t *option = find_option(command, name, length);
       for (size_t j = 0; j < root->implicit_count; ++j)
         if (strlen(root->implicit_commands[j].option_name) == length && !strncmp(root->implicit_commands[j].option_name, name, length)) {
           command = root->implicit_commands[j].command;
@@ -153,6 +166,8 @@ bool flags_resolve_command_ex(flags_command_t *root, int argc, char **argv, flag
           result->used_implicit_command = true;
           break;
         }
+      if (option && option->argument_requirement != FLAGS_ARGUMENT_NONE && !equals && i + 1 < argc)
+        ++i;
       continue;
     }
     flags_command_t *child = find_child(command, argv[i]);

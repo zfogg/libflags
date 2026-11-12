@@ -55,6 +55,8 @@ int main(void) {
   flags_command_t *mirror = flags_command_create(root, "mirror", "mirror mode");
   assert(root && mirror && flags_command_set_default(root, mirror));
   assert(flags_command_set_implicit_for_option(root, mirror, "file"));
+  static const flags_option_spec_t port_option = {.name = "port", .argument_requirement = FLAGS_ARGUMENT_REQUIRED};
+  assert(flags_command_add_option(root, &port_option));
   char *command_argv[] = {"prog", "--", "mirror"};
   int command_index = -1;
   bool used_default = false;
@@ -64,6 +66,10 @@ int main(void) {
   flags_command_resolution_t resolution;
   assert(flags_resolve_command_ex(root, 3, implicit_argv, &resolution));
   assert(resolution.command == mirror && resolution.used_implicit_command && !resolution.options_ended);
+  flags_command_t *client = flags_command_create(root, "client", "client mode");
+  char *explicit_argv[] = {"prog", "--port", "8080", "client"};
+  assert(client && flags_resolve_command_ex(root, 4, explicit_argv, &resolution));
+  assert(resolution.command == client && resolution.command_index == 3);
   flags_command_destroy(root);
   bool enabled = false;
   uint64_t duration = 0;
