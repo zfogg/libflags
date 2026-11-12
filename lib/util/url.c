@@ -21,13 +21,20 @@ bool flags_url_is_valid(const char *url) {
   int error_code;
   PCRE2_SIZE error_offset;
   pcre2_code *code;
+  pcre2_match_data *match_data;
   int result;
   if (!url || !*url)
     return false;
   code = pcre2_compile((PCRE2_SPTR)pattern, PCRE2_ZERO_TERMINATED, 0, &error_code, &error_offset, NULL);
   if (!code)
     return false;
-  result = pcre2_match(code, (PCRE2_SPTR)url, PCRE2_ZERO_TERMINATED, 0, 0, NULL, NULL);
+  match_data = pcre2_match_data_create_from_pattern(code, NULL);
+  if (!match_data) {
+    pcre2_code_free(code);
+    return false;
+  }
+  result = pcre2_match(code, (PCRE2_SPTR)url, PCRE2_ZERO_TERMINATED, 0, 0, match_data, NULL);
+  pcre2_match_data_free(match_data);
   pcre2_code_free(code);
   return result >= 0;
 #else
