@@ -1,4 +1,5 @@
 #include <libflags/commands.h>
+#include <libplatform/util/string.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -22,16 +23,6 @@ struct flags_command {
   void *user_data;
 };
 
-static char *command_strdup(const char *text) {
-  if (!text)
-    return NULL;
-  size_t length = strlen(text) + 1;
-  char *copy = malloc(length);
-  if (copy)
-    memcpy(copy, text, length);
-  return copy;
-}
-
 flags_command_t *flags_command_create(flags_command_t *parent, const char *name, const char *description) {
   if (!name || !*name)
     return NULL;
@@ -39,8 +30,8 @@ flags_command_t *flags_command_create(flags_command_t *parent, const char *name,
   if (!command)
     return NULL;
   command->parent = parent;
-  command->name = command_strdup(name);
-  command->description = command_strdup(description);
+  command->name = platform_strdup(name);
+  command->description = platform_strdup(description);
   if (!command->name || (description && !command->description)) {
     flags_command_destroy(command);
     return NULL;
@@ -110,7 +101,7 @@ bool flags_command_set_implicit_for_option(flags_command_t *root, flags_command_
       struct implicit_command *entries = realloc(root->implicit_commands, (root->implicit_count + 1) * sizeof(*entries));
       if (!entries)
         return false;
-      char *copy = command_strdup(option_name);
+      char *copy = platform_strdup(option_name);
       if (!copy)
         return false;
       root->implicit_commands = entries;
