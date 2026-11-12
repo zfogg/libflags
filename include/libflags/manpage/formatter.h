@@ -1,4 +1,6 @@
-/** @file @brief Generic groff/troff formatting primitives. */
+/** @file
+ * @brief Generic groff/troff formatting primitives.
+ */
 #pragma once
 
 #include <stdio.h>

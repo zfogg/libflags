@@ -1,4 +1,6 @@
-/** @file @brief Generic groff manpage generation. */
+/** @file
+ * @brief Generic groff manpage generation.
+ */
 #pragma once
 #include <stdio.h>
 #include <libflags/flags.h>

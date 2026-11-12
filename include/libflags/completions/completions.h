@@ -1,4 +1,6 @@
-/** @file @brief Generic shell completion generation. */
+/** @file
+ * @brief Generic shell completion generation.
+ */
 #pragma once
 #include <stdio.h>
 #include <libflags/flags.h>
