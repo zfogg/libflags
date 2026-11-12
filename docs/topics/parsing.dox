@@ -1,0 +1,4 @@
+/** \page parsing Parsing and precedence
+Parsing supports aliases, the `--` end marker, configurable environment
+prefixes, and explicit source precedence. A lone `-` remains data.
+*/

@@ -1,0 +1,4 @@
+/** \page commands Commands and positionals
+Schemas may describe nested commands, positional arity, and argument ordering;
+applications attach dispatch and mode-specific behavior.
+*/

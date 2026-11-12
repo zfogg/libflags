@@ -1,0 +1,4 @@
+/** \page runtime Runtime updates
+Runtime patches validate and stage changes before atomic commit. Revision and
+monotonic timestamp metadata are updated, while callbacks run outside locks.
+*/

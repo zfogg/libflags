@@ -1,0 +1,4 @@
+/** \page generators Generated artifacts
+Schema metadata drives generic Bash, Zsh, Fish completion and man-page option
+generation. Applications provide branding, examples, and environment prose.
+*/

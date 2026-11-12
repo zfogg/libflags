@@ -1,0 +1,4 @@
+/** \page json JSON integration
+The JSON adapter translates object members into schema values and applies them
+through the same validation and atomic runtime machinery as text updates.
+*/

@@ -1,7 +1,7 @@
 PROJECT_NAME = libflags
 PROJECT_NUMBER = 0.1.0
 OUTPUT_DIRECTORY = docs/generated
-INPUT = include README.md
+INPUT = include docs/topics README.md
 RECURSIVE = YES
 GENERATE_HTML = YES
 GENERATE_LATEX = NO

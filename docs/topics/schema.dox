@@ -1,0 +1,4 @@
+/** \page schema Schema and typed storage
+Options describe types, aliases, argument policy, environment names, defaults,
+destinations, and validation. Dynamic strings are owned through libplatform.
+*/

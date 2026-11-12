@@ -1,0 +1,5 @@
+/** \page architecture Architecture
+libflags provides independent contexts for schema, typed storage, precedence,
+diagnostics, and runtime metadata. Host applications retain commands, branding,
+side effects, and application-specific validation.
+*/
