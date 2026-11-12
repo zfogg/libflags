@@ -614,7 +614,7 @@ uint64_t flags_runtime_revision(const flags_context_t *context) {
 }
 
 bool flags_runtime_apply_batch(flags_context_t *context, const flags_update_t *updates, size_t update_count, uint64_t expected_revision, flags_source_t source, uint64_t *new_revision) {
-  if (!context || (!updates && update_count != 0))
+  if (!context || (!updates && update_count != 0) || !flags_validate(context))
     return false;
   const flags_option_spec_t **options = calloc(update_count, sizeof(*options));
   flags_value_t *old_values = calloc(update_count, sizeof(*old_values));
@@ -627,7 +627,11 @@ bool flags_runtime_apply_batch(flags_context_t *context, const flags_update_t *u
   }
   for (size_t i = 0; i < update_count; ++i) {
     size_t index = flags_find(context->schema, updates[i].name);
-    if (index == SIZE_MAX || flags_source_priority(source) < flags_source_priority(context->stats[index].source) ||
+    if (index == SIZE_MAX ||
+        (context->schema->options[index].validation_regex &&
+         (context->schema->options[index].type != FLAGS_TYPE_STRING || !updates[i].value.string ||
+          !flags_validate_regex(updates[i].value.string, context->schema->options[index].validation_regex, context->schema->options[index].validation_regex_options))) ||
+        flags_source_priority(source) < flags_source_priority(context->stats[index].source) ||
         (context->schema->options[index].validate && !context->schema->options[index].validate(context, updates[i].name, &updates[i].value, NULL, 0, context->schema->options[index].user_data))) {
       free(options);
       free(old_values);

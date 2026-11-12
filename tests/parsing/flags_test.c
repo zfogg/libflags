@@ -245,6 +245,15 @@ int main(void) {
   flags_update_t failed_updates[] = {{.name = "verbose", .value = {.boolean = false}}, {.name = "missing", .value = {.boolean = false}}};
   assert(!flags_runtime_apply_batch(c, failed_updates, 2, flags_runtime_revision(c), FLAGS_SOURCE_RUNTIME, NULL));
   assert(v.verbose);
+  static const flags_option_spec_t regex_option = {
+      .name = "token", .type = FLAGS_TYPE_STRING, .dynamic_string = true, .storage_offset = 0, .storage_size = sizeof(char *), .validation_regex = "^[a-z]+$"};
+  char *token = NULL;
+  flags_schema_t regex_schema = {.options = &regex_option, .option_count = 1};
+  flags_context_t *regex_context = flags_create(&regex_schema, &token, sizeof(token));
+  assert(regex_context);
+  assert(!flags_runtime_apply_batch(regex_context, &(flags_update_t){.name = "token", .value = {.string = "123"}}, 1, flags_runtime_revision(regex_context), FLAGS_SOURCE_RUNTIME, NULL));
+  assert(token == NULL);
+  flags_destroy(regex_context);
   flags_destroy(c);
   return 0;
 }
