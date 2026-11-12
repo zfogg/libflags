@@ -147,6 +147,12 @@ typedef struct flags_logging_config {
   flags_log_level_t minimum_level; /**< Lowest severity delivered. */
 } flags_logging_config_t;
 
+/** One named value in an atomic runtime update batch. */
+typedef struct flags_update {
+  const char *name;    /**< Option name. */
+  flags_value_t value; /**< New typed value. */
+} flags_update_t;
+
 /** Configures automatic environment-variable lookup for one context. */
 typedef struct flags_environment_config {
   const char *prefix; /**< Prefix for derived names, or NULL for none. */
@@ -255,3 +261,11 @@ bool flags_set_environment_config(flags_context_t *, const flags_environment_con
 bool flags_environment_name(const flags_context_t *, const char *, char *, size_t);
 /** Applies present environment variables using environment precedence. */
 bool flags_apply_environment(flags_context_t *);
+/** Reads one value and returns the context revision observed with it. */
+bool flags_runtime_read(const flags_context_t *, const char *, flags_value_t *, uint64_t *);
+/** Applies one value if the expected revision still matches. */
+bool flags_runtime_apply(flags_context_t *, const char *, const flags_value_t *, uint64_t, flags_source_t, uint64_t *);
+/** Returns the current context revision. */
+uint64_t flags_runtime_revision(const flags_context_t *);
+/** Applies an all-or-nothing batch at one expected revision. */
+bool flags_runtime_apply_batch(flags_context_t *, const flags_update_t *, size_t, uint64_t, flags_source_t, uint64_t *);

@@ -1,4 +1,7 @@
 #include <libflags/flags.h>
+#include <libplatform/mutex.h>
+#include <libplatform/time.h>
+#include <libplatform/util/string.h>
 
 #include <stdarg.h>
 #include <ctype.h>
@@ -26,6 +29,7 @@ struct flags_context {
   flags_logging_config_t logging;
   flags_environment_config_t environment;
   uint64_t revision;
+  mutex_t mutex;
 };
 
 /** Finds an option by its canonical long name. */
@@ -41,17 +45,12 @@ static size_t flags_find(const flags_schema_t *schema, const char *name) {
 static char *flags_strdup(const char *text) {
   if (!text)
     return NULL;
-  size_t length = strlen(text) + 1;
-  char *copy = malloc(length);
-  if (copy)
-    memcpy(copy, text, length);
-  return copy;
+  return platform_strdup(text);
 }
 
 /** Records a monotonic-ish wall-clock change point for portable C11 builds. */
 static void flags_now(struct timespec *out) {
-  out->tv_sec = time(NULL);
-  out->tv_nsec = 0;
+  time_ns_to_timespec(time_get_realtime_ns(), out);
 }
 
 /** Returns the byte size required by a schema type. */
@@ -76,6 +75,10 @@ flags_context_t *flags_create(const flags_schema_t *schema, void *storage, size_
   context->schema = schema;
   context->storage = storage;
   context->storage_size = storage_size;
+  if (mutex_init(&context->mutex, "libflags_context") != 0) {
+    free(context);
+    return NULL;
+  }
   context->stats = calloc(schema->option_count, sizeof(*context->stats));
   if (!context->stats) {
     free(context);
@@ -95,6 +98,7 @@ void flags_destroy(flags_context_t *context) {
       *value = NULL;
     }
   }
+  mutex_destroy(&context->mutex);
   free(context->stats);
   free(context);
 }
@@ -159,9 +163,13 @@ bool flags_set(flags_context_t *context, const char *name, const flags_value_t *
   if (index == SIZE_MAX)
     return false;
   const flags_option_spec_t *option = &context->schema->options[index];
-  ++context->stats[index].write_count;
-  if (option->validate && !option->validate(context, name, value, NULL, 0, option->user_data))
+  if (mutex_lock(&context->mutex) != 0)
     return false;
+  ++context->stats[index].write_count;
+  if (option->validate && !option->validate(context, name, value, NULL, 0, option->user_data)) {
+    mutex_unlock(&context->mutex);
+    return false;
+  }
   void *destination = (char *)context->storage + option->storage_offset;
   flags_value_t old = {0};
   memcpy(&old, destination, option->storage_size < sizeof(old) ? option->storage_size : sizeof(old));
@@ -169,7 +177,8 @@ bool flags_set(flags_context_t *context, const char *name, const flags_value_t *
     char **target = destination;
     char *copy = flags_strdup(value->string);
     if (value->string && !copy)
-      return false;
+      mutex_unlock(&context->mutex);
+    return false;
     free(*target);
     *target = copy;
   } else {
@@ -180,6 +189,7 @@ bool flags_set(flags_context_t *context, const char *name, const flags_value_t *
   ++context->stats[index].change_count;
   ++context->revision;
   flags_now(&context->stats[index].last_changed);
+  mutex_unlock(&context->mutex);
   if (option->on_change)
     option->on_change(context, name, &old, value, option->user_data);
   return true;
@@ -192,8 +202,11 @@ bool flags_get(const flags_context_t *context, const char *name, flags_value_t *
   if (index == SIZE_MAX)
     return false;
   const flags_option_spec_t *option = &context->schema->options[index];
+  if (mutex_lock(&((flags_context_t *)context)->mutex) != 0)
+    return false;
   memcpy(out, (const char *)context->storage + option->storage_offset, option->storage_size < sizeof(*out) ? option->storage_size : sizeof(*out));
   ++((flags_context_t *)context)->stats[index].read_count;
+  mutex_unlock(&((flags_context_t *)context)->mutex);
   return true;
 }
 
@@ -392,7 +405,7 @@ bool flags_environment_name(const flags_context_t *context, const char *name, ch
   }
   if (!source || strlen(source) + 1 > buffer_size)
     return false;
-  strcpy(buffer, source);
+  memcpy(buffer, source, strlen(source) + 1);
   return true;
 }
 
@@ -410,5 +423,45 @@ bool flags_apply_environment(flags_context_t *context) {
     if (!flags_parse_value(context, &context->schema->options[i], text, &value) || !flags_set(context, context->schema->options[i].name, &value, FLAGS_SOURCE_ENVIRONMENT))
       return false;
   }
+  return true;
+}
+
+bool flags_runtime_read(const flags_context_t *context, const char *name, flags_value_t *out, uint64_t *revision) {
+  if (!flags_get(context, name, out))
+    return false;
+  if (revision)
+    *revision = flags_runtime_revision(context);
+  return true;
+}
+
+bool flags_runtime_apply(flags_context_t *context, const char *name, const flags_value_t *value, uint64_t expected_revision, flags_source_t source, uint64_t *new_revision) {
+  if (!context || flags_runtime_revision(context) != expected_revision)
+    return false;
+  if (!flags_set(context, name, value, source))
+    return false;
+  if (new_revision)
+    *new_revision = flags_runtime_revision(context);
+  return true;
+}
+
+uint64_t flags_runtime_revision(const flags_context_t *context) {
+  if (!context)
+    return 0;
+  if (mutex_lock(&((flags_context_t *)context)->mutex) != 0)
+    return 0;
+  uint64_t revision = context->revision;
+  mutex_unlock(&((flags_context_t *)context)->mutex);
+  return revision;
+}
+
+bool flags_runtime_apply_batch(flags_context_t *context, const flags_update_t *updates, size_t update_count, uint64_t expected_revision, flags_source_t source, uint64_t *new_revision) {
+  if (!context || (!updates && update_count != 0) || flags_runtime_revision(context) != expected_revision)
+    return false;
+  for (size_t i = 0; i < update_count; ++i) {
+    if (!flags_set(context, updates[i].name, &updates[i].value, source))
+      return false;
+  }
+  if (new_revision)
+    *new_revision = flags_runtime_revision(context);
   return true;
 }
