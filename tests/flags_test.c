@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <libflags/flags.h>
 #include <libflags/commands.h>
+#include <libflags/values.h>
 #include <string.h>
 typedef struct {
   bool verbose;
@@ -46,6 +47,14 @@ int main(void) {
   assert(flags_resolve_command(root, 3, command_argv, &command_index, &used_default) == mirror);
   assert(used_default && command_index == -1);
   flags_command_destroy(root);
+  bool enabled = false;
+  uint64_t duration = 0;
+  uint64_t size = 0;
+  flags_decibel_t decibel = {0};
+  assert(flags_parse_bool_relaxed("ON", &enabled) && enabled);
+  assert(flags_parse_duration("500ms", &duration) && duration == 500000000ULL);
+  assert(flags_parse_size("4KiB", &size) && size == 4096ULL);
+  assert(flags_parse_decibel_or_auto("auto", &decibel) && decibel.automatic);
   flags_destroy(c);
   return 0;
 }
