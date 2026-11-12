@@ -1,4 +1,5 @@
 #include <libflags/flags.h>
+#include <libflags/values.h>
 #include <libplatform/mutex.h>
 #include <libplatform/time.h>
 #include <libplatform/util/string.h>
@@ -75,9 +76,9 @@ static void flags_now(struct timespec *out) {
 static size_t flags_type_size(const flags_option_spec_t *option) {
   if (option->type == FLAGS_TYPE_BOOL)
     return sizeof(bool);
-  if (option->type == FLAGS_TYPE_INT64 || option->type == FLAGS_TYPE_DURATION || option->type == FLAGS_TYPE_PORT)
+  if (option->type == FLAGS_TYPE_INT64 || option->type == FLAGS_TYPE_PORT)
     return sizeof(int64_t);
-  if (option->type == FLAGS_TYPE_UINT64 || option->type == FLAGS_TYPE_SIZE || option->type == FLAGS_TYPE_RATE)
+  if (option->type == FLAGS_TYPE_UINT64 || option->type == FLAGS_TYPE_DURATION || option->type == FLAGS_TYPE_SIZE || option->type == FLAGS_TYPE_RATE)
     return sizeof(uint64_t);
   if (option->type == FLAGS_TYPE_DOUBLE || option->type == FLAGS_TYPE_PERCENT || option->type == FLAGS_TYPE_DECIBEL)
     return sizeof(double);
@@ -266,23 +267,37 @@ static bool flags_parse_value(flags_context_t *context, const flags_option_spec_
   char *end = NULL;
   switch (option->type) {
   case FLAGS_TYPE_BOOL:
-    out->boolean = strcmp(text, "true") == 0 || strcmp(text, "1") == 0 || strcmp(text, "on") == 0;
-    return out->boolean || strcmp(text, "false") == 0 || strcmp(text, "0") == 0 || strcmp(text, "off") == 0;
+    return flags_parse_bool_relaxed(text, &out->boolean);
   case FLAGS_TYPE_INT64:
-  case FLAGS_TYPE_DURATION:
   case FLAGS_TYPE_PORT:
     out->integer = strtoll(text, &end, 10);
-    return end != text && *end == '\0';
+    return end != text && *end == '\0' && (option->type != FLAGS_TYPE_PORT || (out->integer >= 0 && out->integer <= 65535));
+  case FLAGS_TYPE_DURATION:
+    return flags_parse_duration(text, &out->unsigned_integer);
   case FLAGS_TYPE_UINT64:
   case FLAGS_TYPE_SIZE:
   case FLAGS_TYPE_RATE:
-    out->unsigned_integer = strtoull(text, &end, 10);
-    return end != text && *end == '\0';
+    return option->type == FLAGS_TYPE_UINT64 ? (out->unsigned_integer = strtoull(text, &end, 10), end != text && *end == '\0') : flags_parse_size(text, &out->unsigned_integer);
   case FLAGS_TYPE_DOUBLE:
-  case FLAGS_TYPE_PERCENT:
-  case FLAGS_TYPE_DECIBEL:
     out->number = strtod(text, &end);
-    return end != text && (*end == '\0' || (option->type == FLAGS_TYPE_DECIBEL && strcmp(end, "dB") == 0));
+    return end != text && *end == '\0';
+  case FLAGS_TYPE_PERCENT:
+    out->number = strtod(text, &end);
+    return end != text && *end == '\0' && out->number >= 0.0 && out->number <= 100.0;
+  case FLAGS_TYPE_ENUM: {
+    size_t index = 0;
+    if (!flags_parse_enum(text, option->enum_values, option->enum_value_count, &index))
+      return false;
+    out->unsigned_integer = index;
+    return true;
+  }
+  case FLAGS_TYPE_DECIBEL: {
+    flags_decibel_t decibel;
+    if (!flags_parse_decibel_or_auto(text, &decibel) || decibel.automatic)
+      return false;
+    out->number = decibel.value;
+    return true;
+  }
   default:
     out->string = text;
     return true;
