@@ -75,8 +75,7 @@ int flags_parse_ip_with_port(const char *text, char *address, size_t address_siz
   return parse_port(separator + 1, port);
 }
 
-int flags_parse_address_with_optional_port(const char *text, char *address, size_t address_size, uint16_t *port,
-                                          uint16_t default_port) {
+int flags_parse_address_with_optional_port(const char *text, char *address, size_t address_size, uint16_t *port, uint16_t default_port) {
   size_t length;
   if (!text || !address || !port)
     return -1;

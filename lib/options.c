@@ -1,4 +1,5 @@
 #include <libflags/flags.h>
+#include <libflags/validation.h>
 #include <libflags/values.h>
 #include <libplatform/mutex.h>
 #include <libplatform/system.h>
@@ -207,6 +208,8 @@ bool flags_set(flags_context_t *context, const char *name, const flags_value_t *
   if (index == SIZE_MAX)
     return false;
   const flags_option_spec_t *option = &context->schema->options[index];
+  if (option->validation_regex && (option->type != FLAGS_TYPE_STRING || !value->string || !flags_validate_regex(value->string, option->validation_regex, option->validation_regex_options)))
+    return false;
   if (mutex_lock(&context->mutex) != 0)
     return false;
   ++context->stats[index].write_count;

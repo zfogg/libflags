@@ -215,6 +215,8 @@ typedef struct flags_option_spec {
   const void *default_value;                         /**< Optional default value. */
   const char *const *enum_values;                    /**< Optional enum spellings. */
   size_t enum_value_count;                           /**< Number of enum spellings. */
+  const char *validation_regex;                      /**< Optional PCRE2 pattern for string validation. */
+  uint32_t validation_regex_options;                 /**< PCRE2 compile options for validation_regex. */
   bool dynamic_string;                               /**< Whether strings are duplicated. */
   flags_parse_callback_t parse;                      /**< Optional textual parser. */
   flags_validate_callback_t validate;                /**< Optional validator. */

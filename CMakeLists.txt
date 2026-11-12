@@ -40,6 +40,7 @@ else()
 endif()
 add_library(flags
   lib/options.c
+  lib/validation.c
   lib/util/ip.c
   lib/commands.c
   lib/parsing/parsers.c
@@ -54,6 +55,7 @@ target_compile_features(flags PUBLIC c_std_11)
 target_link_libraries(flags PUBLIC libplatform::libplatform libflags-tomlc17)
 if(LIBFLAGS_PCRE2_INCLUDE_DIRS)
   target_include_directories(flags PRIVATE ${LIBFLAGS_PCRE2_INCLUDE_DIRS})
+  target_compile_definitions(flags PRIVATE LIBFLAGS_HAS_PCRE2=1)
 endif()
 if(LIBFLAGS_PCRE2_LIBRARIES)
   target_link_libraries(flags PUBLIC ${LIBFLAGS_PCRE2_LIBRARIES})
