@@ -9,7 +9,7 @@
 
 /** A decibel value that can represent automatic gain independently of zero. */
 typedef struct flags_decibel {
-  double value; /**< Numeric decibel value. */
+  double value;   /**< Numeric decibel value. */
   bool automatic; /**< Whether the value is `auto`. */
 } flags_decibel_t;
 
@@ -23,4 +23,3 @@ bool flags_parse_size(const char *, uint64_t *);
 bool flags_parse_enum(const char *, const char *const *, size_t, size_t *);
 /** Parses a numeric decibel value with an optional `dB` suffix or `auto`. */
 bool flags_parse_decibel_or_auto(const char *, flags_decibel_t *);
-

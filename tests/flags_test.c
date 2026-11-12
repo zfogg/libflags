@@ -55,6 +55,14 @@ int main(void) {
   assert(flags_parse_duration("500ms", &duration) && duration == 500000000ULL);
   assert(flags_parse_size("4KiB", &size) && size == 4096ULL);
   assert(flags_parse_decibel_or_auto("auto", &decibel) && decibel.automatic);
+  flags_value_t update_value = {.boolean = true};
+  flags_update_t update = {.name = "verbose", .value = update_value};
+  uint64_t revision = 0;
+  assert(flags_runtime_apply_batch(c, &update, 1, flags_runtime_revision(c), FLAGS_SOURCE_RUNTIME, &revision));
+  assert(v.verbose && revision == flags_runtime_revision(c));
+  flags_update_t failed_updates[] = {{.name = "verbose", .value = {.boolean = false}}, {.name = "missing", .value = {.boolean = false}}};
+  assert(!flags_runtime_apply_batch(c, failed_updates, 2, flags_runtime_revision(c), FLAGS_SOURCE_RUNTIME, NULL));
+  assert(v.verbose);
   flags_destroy(c);
   return 0;
 }

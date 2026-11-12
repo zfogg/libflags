@@ -128,6 +128,7 @@ bool flags_set_defaults(flags_context_t *context) {
     if (!flags_set(context, option->name, &value, FLAGS_SOURCE_DEFAULT))
       return false;
     context->stats[i].explicitly_set = false;
+    context->stats[i].changed_from_default = false;
     context->stats[i].change_count = 0;
     context->stats[i].write_count = 0;
   }
@@ -479,13 +480,78 @@ uint64_t flags_runtime_revision(const flags_context_t *context) {
 }
 
 bool flags_runtime_apply_batch(flags_context_t *context, const flags_update_t *updates, size_t update_count, uint64_t expected_revision, flags_source_t source, uint64_t *new_revision) {
-  if (!context || (!updates && update_count != 0) || flags_runtime_revision(context) != expected_revision)
+  if (!context || (!updates && update_count != 0))
     return false;
-  for (size_t i = 0; i < update_count; ++i) {
-    if (!flags_set(context, updates[i].name, &updates[i].value, source))
-      return false;
+  const flags_option_spec_t **options = calloc(update_count, sizeof(*options));
+  flags_value_t *old_values = calloc(update_count, sizeof(*old_values));
+  char **owned_strings = calloc(update_count, sizeof(*owned_strings));
+  if ((update_count && (!options || !old_values || !owned_strings))) {
+    free(options);
+    free(old_values);
+    free(owned_strings);
+    return false;
   }
+  for (size_t i = 0; i < update_count; ++i) {
+    size_t index = flags_find(context->schema, updates[i].name);
+    if (index == SIZE_MAX ||
+        (context->schema->options[index].validate && !context->schema->options[index].validate(context, updates[i].name, &updates[i].value, NULL, 0, context->schema->options[index].user_data))) {
+      free(options);
+      free(old_values);
+      free(owned_strings);
+      return false;
+    }
+    options[i] = &context->schema->options[index];
+    if (options[i]->dynamic_string) {
+      owned_strings[i] = flags_strdup(updates[i].value.string);
+      if (updates[i].value.string && !owned_strings[i]) {
+        for (size_t j = 0; j <= i; ++j)
+          free(owned_strings[j]);
+        free(options);
+        free(old_values);
+        free(owned_strings);
+        return false;
+      }
+    }
+  }
+  if (mutex_lock(&context->mutex) != 0 || context->revision != expected_revision) {
+    for (size_t i = 0; i < update_count; ++i)
+      free(owned_strings[i]);
+    free(options);
+    free(old_values);
+    free(owned_strings);
+    return false;
+  }
+  for (size_t i = 0; i < update_count; ++i) {
+    void *destination = (char *)context->storage + options[i]->storage_offset;
+    memcpy(&old_values[i], destination, options[i]->storage_size < sizeof(old_values[i]) ? options[i]->storage_size : sizeof(old_values[i]));
+    if (options[i]->dynamic_string) {
+      char **target = destination;
+      *target = owned_strings[i];
+      owned_strings[i] = NULL;
+    } else {
+      memcpy(destination, &updates[i].value, options[i]->storage_size);
+    }
+    size_t index = (size_t)(options[i] - context->schema->options);
+    context->stats[index].explicitly_set = source != FLAGS_SOURCE_DEFAULT;
+    context->stats[index].changed_from_default = source != FLAGS_SOURCE_DEFAULT;
+    ++context->stats[index].write_count;
+    ++context->stats[index].change_count;
+  }
+  ++context->revision;
+  uint64_t revision = context->revision;
+  mutex_unlock(&context->mutex);
+  for (size_t i = 0; i < update_count; ++i)
+    if (options[i]->on_change)
+      options[i]->on_change(context, options[i]->name, &old_values[i], &updates[i].value, options[i]->user_data);
+  for (size_t i = 0; i < update_count; ++i)
+    if (options[i]->dynamic_string)
+      free((void *)old_values[i].string);
+  for (size_t i = 0; i < update_count; ++i)
+    free(owned_strings[i]);
+  free(options);
+  free(old_values);
+  free(owned_strings);
   if (new_revision)
-    *new_revision = flags_runtime_revision(context);
+    *new_revision = revision;
   return true;
 }

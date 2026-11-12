@@ -67,13 +67,20 @@ bool flags_parse_size(const char *text, uint64_t *out) {
   if (!parse_number(text, &number, &suffix) || number < 0.0)
     return false;
   uint64_t multiplier = 1;
-  if (equal_case_insensitive(suffix, "k") || equal_case_insensitive(suffix, "kb")) multiplier = 1000ULL;
-  else if (equal_case_insensitive(suffix, "kiB")) multiplier = 1024ULL;
-  else if (equal_case_insensitive(suffix, "m") || equal_case_insensitive(suffix, "mb")) multiplier = 1000ULL * 1000ULL;
-  else if (equal_case_insensitive(suffix, "miB")) multiplier = 1024ULL * 1024ULL;
-  else if (equal_case_insensitive(suffix, "g") || equal_case_insensitive(suffix, "gb")) multiplier = 1000ULL * 1000ULL * 1000ULL;
-  else if (equal_case_insensitive(suffix, "giB")) multiplier = 1024ULL * 1024ULL * 1024ULL;
-  else if (*suffix != '\0') return false;
+  if (equal_case_insensitive(suffix, "k") || equal_case_insensitive(suffix, "kb"))
+    multiplier = 1000ULL;
+  else if (equal_case_insensitive(suffix, "kiB"))
+    multiplier = 1024ULL;
+  else if (equal_case_insensitive(suffix, "m") || equal_case_insensitive(suffix, "mb"))
+    multiplier = 1000ULL * 1000ULL;
+  else if (equal_case_insensitive(suffix, "miB"))
+    multiplier = 1024ULL * 1024ULL;
+  else if (equal_case_insensitive(suffix, "g") || equal_case_insensitive(suffix, "gb"))
+    multiplier = 1000ULL * 1000ULL * 1000ULL;
+  else if (equal_case_insensitive(suffix, "giB"))
+    multiplier = 1024ULL * 1024ULL * 1024ULL;
+  else if (*suffix != '\0')
+    return false;
   *out = (uint64_t)(number * (double)multiplier);
   return true;
 }
