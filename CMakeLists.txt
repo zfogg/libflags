@@ -8,6 +8,8 @@ include(FetchContent)
 
 set(LIBFLAGS_DEPS_CACHE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/.deps-cache" CACHE PATH "Shared source cache for libflags dependencies")
 set(LIBFLAGS_LIBPLATFORM_SOURCE_DIR "" CACHE PATH "Existing libplatform source tree")
+set(LIBFLAGS_PCRE2_INCLUDE_DIRS "" CACHE STRING "PCRE2 include directories supplied by the embedding project")
+set(LIBFLAGS_PCRE2_LIBRARIES "" CACHE STRING "PCRE2 libraries or targets supplied by the embedding project")
 if(NOT TARGET libplatform::libplatform)
   if(LIBFLAGS_LIBPLATFORM_SOURCE_DIR AND EXISTS "${LIBFLAGS_LIBPLATFORM_SOURCE_DIR}/CMakeLists.txt")
     set(LIBPLATFORM_BUILD_TESTS OFF CACHE BOOL "Disable libplatform standalone tests" FORCE)
@@ -38,6 +40,7 @@ else()
 endif()
 add_library(flags
   lib/options.c
+  lib/util/ip.c
   lib/commands.c
   lib/parsing/parsers.c
   lib/builder/builder.c
@@ -49,6 +52,12 @@ add_library(libflags::flags ALIAS flags)
 target_include_directories(flags PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 target_compile_features(flags PUBLIC c_std_11)
 target_link_libraries(flags PUBLIC libplatform::libplatform libflags-tomlc17)
+if(LIBFLAGS_PCRE2_INCLUDE_DIRS)
+  target_include_directories(flags PRIVATE ${LIBFLAGS_PCRE2_INCLUDE_DIRS})
+endif()
+if(LIBFLAGS_PCRE2_LIBRARIES)
+  target_link_libraries(flags PUBLIC ${LIBFLAGS_PCRE2_LIBRARIES})
+endif()
 if(LIBFLAGS_BUILD_TESTS)
   enable_testing()
   add_executable(libflags-test tests/parsing/flags_test.c)
