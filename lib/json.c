@@ -32,8 +32,7 @@ static bool value_to_text(yyjson_val *value, char *buffer, size_t size) {
   return false;
 }
 
-bool flags_apply_json(flags_context_t *context, const char *json, size_t length, uint64_t expected_revision,
-                      flags_source_t source, flags_patch_result_t *result) {
+bool flags_apply_json(flags_context_t *context, const char *json, size_t length, uint64_t expected_revision, flags_source_t source, flags_patch_result_t *result) {
   if (!context || !json || !result)
     return false;
   *result = (flags_patch_result_t){.status = FLAGS_PATCH_INVALID, .revision = flags_runtime_revision(context)};
@@ -135,12 +134,13 @@ bool flags_snapshot_json(const flags_context_t *context, char **out_json, uint64
   return true;
 }
 
-void flags_free_json(char *json) { free(json); }
+void flags_free_json(char *json) {
+  free(json);
+}
 
 #else
 
-bool flags_apply_json(flags_context_t *context, const char *json, size_t length, uint64_t expected_revision,
-                      flags_source_t source, flags_patch_result_t *result) {
+bool flags_apply_json(flags_context_t *context, const char *json, size_t length, uint64_t expected_revision, flags_source_t source, flags_patch_result_t *result) {
   (void)context;
   (void)json;
   (void)length;
@@ -158,6 +158,8 @@ bool flags_snapshot_json(const flags_context_t *context, char **out_json, uint64
   return false;
 }
 
-void flags_free_json(char *json) { free(json); }
+void flags_free_json(char *json) {
+  free(json);
+}
 
 #endif
