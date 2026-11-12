@@ -15,6 +15,10 @@ typedef struct {
   int positional_count;
 } values_t;
 
+typedef struct {
+  char name[32];
+} fixed_values_t;
+
 static bool count_positional(flags_context_t *context, const char *text, void *user_data) {
   (void)context;
   (void)text;
@@ -29,6 +33,16 @@ static void capture_log(const flags_log_event_t *event, void *user_data) {
 }
 
 int main(void) {
+  fixed_values_t fixed_values = {0};
+  static const flags_option_spec_t fixed_option = {.name = "name", .type = FLAGS_TYPE_STRING, .storage_offset = offsetof(fixed_values_t, name), .storage_size = sizeof fixed_values.name};
+  const flags_schema_t fixed_schema = {.options = &fixed_option, .option_count = 1};
+  flags_context_t *fixed_context = flags_create(&fixed_schema, &fixed_values, sizeof fixed_values);
+  flags_value_t fixed_text = {.string = "fixed value"};
+  assert(fixed_context && flags_set(fixed_context, "name", &fixed_text, FLAGS_SOURCE_RUNTIME));
+  flags_value_t fixed_read = {0};
+  assert(flags_get(fixed_context, "name", &fixed_read) && !strcmp(fixed_read.string, "fixed value"));
+  flags_destroy(fixed_context);
+
   flags_schema_builder_t *builder = flags_schema_builder_create();
   flags_option_spec_t builder_option = {.name = "builder-option", .type = FLAGS_TYPE_BOOL};
   assert(builder && flags_schema_builder_add_option(builder, &builder_option));

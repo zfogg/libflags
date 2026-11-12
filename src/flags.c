@@ -96,6 +96,8 @@ static size_t flags_type_size(const flags_option_spec_t *option) {
 
 /** Returns the smallest storage width accepted for integer-compatible fields. */
 static size_t flags_type_min_size(const flags_option_spec_t *option) {
+  if (option->type == FLAGS_TYPE_STRING && !option->dynamic_string)
+    return sizeof(char);
   if (option->type == FLAGS_TYPE_INT64 || option->type == FLAGS_TYPE_PORT)
     return sizeof(int32_t);
   if (option->type == FLAGS_TYPE_UINT64 || option->type == FLAGS_TYPE_DURATION || option->type == FLAGS_TYPE_SIZE || option->type == FLAGS_TYPE_RATE)
@@ -226,7 +228,7 @@ bool flags_set(flags_context_t *context, const char *name, const flags_value_t *
   void *destination = (char *)context->storage + option->storage_offset;
   flags_value_t old = {0};
   memcpy(&old, destination, option->storage_size < sizeof(old) ? option->storage_size : sizeof(old));
-  if (option->dynamic_string && option->storage_size == sizeof(char *)) {
+  if (option->type == FLAGS_TYPE_STRING && option->dynamic_string && option->storage_size == sizeof(char *)) {
     char **target = destination;
     char *copy = flags_strdup(value->string);
     if (value->string && !copy) {
@@ -235,6 +237,17 @@ bool flags_set(flags_context_t *context, const char *name, const flags_value_t *
     }
     free(*target);
     *target = copy;
+  } else if (option->type == FLAGS_TYPE_STRING) {
+    if (option->storage_size == 0) {
+      mutex_unlock(&context->mutex);
+      return false;
+    }
+    const char *text = value->string ? value->string : "";
+    size_t length = strlen(text);
+    if (length >= option->storage_size)
+      length = option->storage_size - 1;
+    memcpy(destination, text, length);
+    ((char *)destination)[length] = '\0';
   } else {
     memcpy(destination, value, option->storage_size);
   }
@@ -259,7 +272,11 @@ bool flags_get(const flags_context_t *context, const char *name, flags_value_t *
   const flags_option_spec_t *option = &context->schema->options[index];
   if (mutex_lock(&((flags_context_t *)context)->mutex) != 0)
     return false;
-  memcpy(out, (const char *)context->storage + option->storage_offset, option->storage_size < sizeof(*out) ? option->storage_size : sizeof(*out));
+  const void *source = (const char *)context->storage + option->storage_offset;
+  if (option->type == FLAGS_TYPE_STRING && !option->dynamic_string)
+    out->string = source;
+  else
+    memcpy(out, source, option->storage_size < sizeof(*out) ? option->storage_size : sizeof(*out));
   ++((flags_context_t *)context)->stats[index].read_count;
   flags_now(&((flags_context_t *)context)->stats[index].last_read);
   mutex_unlock(&((flags_context_t *)context)->mutex);
