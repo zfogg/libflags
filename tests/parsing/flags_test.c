@@ -21,6 +21,11 @@ typedef struct {
   char name[32];
 } fixed_values_t;
 
+typedef struct {
+  flags_decibel_t volume;
+  flags_percent_t coverage;
+} semantic_values_t;
+
 static bool count_positional(flags_context_t *context, const char *text, void *user_data) {
   (void)context;
   (void)text;
@@ -202,6 +207,18 @@ int main(void) {
   flags_percent_t percent = {0};
   assert(flags_parse_percent_or_auto("auto", &percent) && percent.automatic);
   assert(flags_parse_percent_or_auto("37.5", &percent) && !percent.automatic && percent.value == 37.5);
+  semantic_values_t semantic_values = {0};
+  static const flags_option_spec_t semantic_options[] = {
+      {.name = "volume", .type = FLAGS_TYPE_DECIBEL, .storage_offset = offsetof(semantic_values_t, volume), .storage_size = sizeof(flags_decibel_t)},
+      {.name = "coverage", .type = FLAGS_TYPE_PERCENT, .storage_offset = offsetof(semantic_values_t, coverage), .storage_size = sizeof(flags_percent_t)},
+  };
+  const flags_schema_t semantic_schema = {.options = semantic_options, .option_count = 2};
+  flags_context_t *semantic_context = flags_create(&semantic_schema, &semantic_values, sizeof semantic_values);
+  assert(semantic_context && flags_set_text(semantic_context, "volume", "auto", FLAGS_SOURCE_RUNTIME));
+  assert(semantic_values.volume.automatic);
+  assert(flags_set_text(semantic_context, "coverage", "37.5", FLAGS_SOURCE_RUNTIME));
+  assert(!semantic_values.coverage.automatic && semantic_values.coverage.value == 37.5);
+  flags_destroy(semantic_context);
   flags_string_list_t strings = {0};
   assert(flags_parse_string_list("one, two ,three", &strings) && strings.count == 3);
   assert(!strcmp(strings.items[1], "two"));
