@@ -1,27 +1,40 @@
-# libflags documentation
+# libflags
 
-libflags is a reusable, typed command-line and configuration engine. It owns
-schema metadata, parsing, precedence, validation, runtime updates, JSON
-adapters, completions, and generic man-page generation; applications own their
-commands, examples, branding, and application-specific validation.
+[View the source on GitHub](https://github.com/zfogg/libflags)
 
-The public API is documented in the headers and published from `main` by the
-GitHub Pages workflow. The parser contract is deliberately small: `--` ends
-option parsing, while `-` is a normal value that may be classified as stdin or
-stdout by option metadata.
+libflags is a reusable, typed command-line and configuration engine for C.
+It owns schema metadata, parsing, precedence, validation, runtime updates,
+JSON and TOML adapters, completions, and generic man-page generation.
+Applications retain their commands, examples, branding, and policy.
 
-`flags_config_load_toml()` and `flags_config_write_toml()` operate on dotted
-option names at configuration precedence. `flags_completion_write()` generates
-Bash, Zsh, or Fish syntax from schema metadata, and `flags_manpage_write()`
-generates the generic option section. Host applications retain their commands,
-examples, environment prose, and mode-specific validation.
+The public headers are the reference. The API pages below are generated from
+those headers with Hawkmoth, so declarations and documentation stay together.
 
-## Design topics
+```{toctree}
+:maxdepth: 2
 
-- [Architecture](topics/architecture.dox)
-- [Schema and typed storage](topics/schema.dox)
-- [Parsing and precedence](topics/parsing.dox)
-- [Runtime updates](topics/runtime.dox)
-- [Commands and positionals](topics/commands.dox)
-- [JSON integration](topics/json.dox)
-- [Generated artifacts](topics/generators.dox)
+api
+topics/architecture
+topics/schema
+topics/parsing
+topics/runtime
+topics/commands
+topics/json
+topics/generators
+```
+
+## Design boundary
+
+An application owns its concrete storage and option registry. A libflags
+schema describes how that storage is typed, parsed, validated, serialized,
+and exposed to generic tools. Multiple contexts can share an immutable schema
+without sharing mutable values or runtime statistics.
+
+## Header map
+
+- `flags.h`, `flags_types.h`, and `flags_schema.h` — core public types and descriptors.
+- `flags_parser.h`, `parsing/`, and `parsers.h` — command-line and text parsing.
+- `runtime.h` — synchronized reads, writes, revisions, and atomic batches.
+- `config.h`, `json.h`, and `config/` — configuration adapters.
+- `completions/` and `manpage/` — generic generated shell and documentation output.
+- `util/ip.h` and `util/url.h` — reusable network-string helpers.

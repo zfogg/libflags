@@ -1,0 +1,4 @@
+/* Keep the small libplatform-style documentation site readable on narrow screens. */
+div.body { max-width: 58em; }
+div.sphinxsidebarwrapper { padding: 1em 0.5em; }
+code, pre { font-variant-ligatures: none; }
