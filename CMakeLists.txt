@@ -12,14 +12,14 @@ set(LIBFLAGS_PCRE2_INCLUDE_DIRS "" CACHE STRING "PCRE2 include directories suppl
 set(LIBFLAGS_PCRE2_LIBRARIES "" CACHE STRING "PCRE2 libraries or targets supplied by the embedding project")
 set(LIBFLAGS_YYJSON_INCLUDE_DIRS "" CACHE STRING "yyjson include directories supplied by the embedding project")
 set(LIBFLAGS_YYJSON_LIBRARIES "" CACHE STRING "yyjson libraries or targets supplied by the embedding project")
-if(NOT TARGET libplatform::libplatform)
+if(NOT TARGET libplatform::libplatform AND NOT TARGET libplatform AND NOT TARGET libplatform-objects)
   # Embedders may add libplatform before libflags. Reuse that target instead of
   # fetching a second copy into the dependency cache.
   if(TARGET libplatform)
     add_library(libplatform::libplatform ALIAS libplatform)
   endif()
 endif()
-if(NOT TARGET libplatform::libplatform)
+if(NOT TARGET libplatform::libplatform AND NOT TARGET libplatform AND NOT TARGET libplatform-objects)
   if(LIBFLAGS_LIBPLATFORM_SOURCE_DIR AND EXISTS "${LIBFLAGS_LIBPLATFORM_SOURCE_DIR}/CMakeLists.txt")
     set(LIBPLATFORM_BUILD_TESTS OFF CACHE BOOL "Disable libplatform standalone tests" FORCE)
     add_subdirectory("${LIBFLAGS_LIBPLATFORM_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/libplatform")
