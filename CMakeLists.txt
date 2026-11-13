@@ -27,7 +27,7 @@ if(NOT TARGET libplatform::libplatform AND NOT TARGET libplatform AND NOT TARGET
     set(LIBPLATFORM_BUILD_TESTS OFF CACHE BOOL "Disable libplatform standalone tests" FORCE)
     FetchContent_Declare(libplatform
       GIT_REPOSITORY https://github.com/zfogg/libplatform.git
-      GIT_TAG 0064a280b78befa01143aad8d6eef9895e1ec82d
+      GIT_TAG 79076d5
       SOURCE_DIR "${LIBFLAGS_DEPS_CACHE_ROOT}/libplatform-src")
     FetchContent_MakeAvailable(libplatform)
   endif()
