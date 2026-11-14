@@ -395,23 +395,69 @@ typedef struct flags_schema {
   flags_argument_order_t argument_order;
 } flags_schema_t;
 
-/** @brief Creates an independent context bound to caller-owned storage. @param schema Immutable option schema. @param storage Application storage. @param storage_size Storage size in bytes. @return New context, or NULL on invalid input/allocation failure. @note The caller retains ownership of storage. */
+/**
+ * @brief Creates an independent context bound to caller-owned storage.
+ * @param schema Immutable option schema.
+ * @param storage Application storage.
+ * @param storage_size Storage size in bytes.
+ * @return New context, or NULL on invalid input or allocation failure.
+ * @note The caller retains ownership of storage.
+ */
 flags_context_t *flags_create(const flags_schema_t *schema, void *storage, size_t storage_size);
-/** @brief Returns the immutable schema associated with a context. @param context Context to inspect. @return Borrowed schema pointer. */
+/**
+ * @brief Returns the immutable schema associated with a context.
+ * @param context Context to inspect.
+ * @return Borrowed schema pointer.
+ */
 const flags_schema_t *flags_context_schema(const flags_context_t *context);
-/** @brief Destroys a context without destroying caller-owned storage. @param context Context to destroy. */
+/**
+ * @brief Destroys a context without destroying caller-owned storage.
+ * @param context Context to destroy.
+ */
 void flags_destroy(flags_context_t *context);
-/** @brief Destroys a context while leaving dynamic values in bound storage. @param context Context to destroy. @note Dynamic values remain owned by the caller. */
+/**
+ * @brief Destroys a context while leaving dynamic values in bound storage.
+ * @param context Context to destroy.
+ * @note Dynamic values remain owned by the caller.
+ */
 void flags_destroy_preserving_storage(flags_context_t *context);
-/** @brief Copies schema defaults into bound storage. @param context Context to initialize. @return Whether defaults were applied. */
+/**
+ * @brief Copies schema defaults into bound storage.
+ * @param context Context to initialize.
+ * @return Whether defaults were applied.
+ */
 bool flags_set_defaults(flags_context_t *context);
-/** @brief Parses flags and returns borrowed positional arguments. @param context Context to update. @param argc Argument count. @param argv Argument vector. @param result Parse result destination. @return Whether parsing succeeded. @note Positional pointers remain owned by argv. */
+/**
+ * @brief Parses flags and returns borrowed positional arguments.
+ * @param context Context to update.
+ * @param argc Argument count.
+ * @param argv Argument vector.
+ * @param result Parse result destination.
+ * @return Whether parsing succeeded.
+ * @note Positional pointers remain owned by argv.
+ */
 bool flags_parse(flags_context_t *context, int argc, char **argv, flags_parse_result_t *result);
-/** @brief Applies a positional-only schema to borrowed values. @param context Context to update. @param argc Argument count. @param argv Argument vector. @return Whether parsing succeeded. */
+/**
+ * @brief Applies a positional-only schema to borrowed values.
+ * @param context Context to update.
+ * @param argc Argument count.
+ * @param argv Argument vector.
+ * @return Whether parsing succeeded.
+ */
 bool flags_parse_positionals(flags_context_t *context, int argc, char **argv);
-/** @brief Splits options from positional arguments. @param argc Argument count. @param argv Argument vector. @param result Parse result destination. @return Whether splitting succeeded. */
+/**
+ * @brief Splits options from positional arguments.
+ * @param argc Argument count.
+ * @param argv Argument vector.
+ * @param result Parse result destination.
+ * @return Whether splitting succeeded.
+ */
 bool flags_split_arguments(int argc, char **argv, flags_parse_result_t *result);
-/** @brief Validates that a context has usable storage. @param context Context to validate. @return Whether the context is valid. */
+/**
+ * @brief Validates that a context has usable storage.
+ * @param context Context to validate.
+ * @return Whether the context is valid.
+ */
 bool flags_validate(const flags_context_t *context);
 /** Copies one option value into caller-provided storage. */
 bool flags_get(const flags_context_t *context, const char *name, flags_value_t *value);
