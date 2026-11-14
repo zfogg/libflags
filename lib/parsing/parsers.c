@@ -4,6 +4,17 @@
 #include <stdlib.h>
 #include <string.h>
 
+bool flags_parse_int32(const char *text, int32_t *out) {
+  if (!text || !*text || !out)
+    return false;
+  char *end = NULL;
+  long value = strtol(text, &end, 10);
+  if (end == text || *end != '\0' || value < INT32_MIN || value > INT32_MAX)
+    return false;
+  *out = (int32_t)value;
+  return true;
+}
+
 static char *trimmed_duplicate(const char *start, size_t length) {
   while (length && isspace((unsigned char)*start))
     ++start, --length;

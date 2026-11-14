@@ -29,6 +29,14 @@ typedef struct flags_int_list {
 } flags_int_list_t;
 
 /**
+ * @brief Parses a signed 32-bit decimal integer with full-string validation.
+ * @param text Input text.
+ * @param value Destination value.
+ * @return Whether parsing succeeded without overflow.
+ */
+bool flags_parse_int32(const char *text, int32_t *value);
+
+/**
  * @brief Parses true/false, yes/no, on/off, and 1/0 spellings.
  * @param text Input spelling.
  * @param value Destination value.
