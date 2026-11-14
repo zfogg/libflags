@@ -34,6 +34,13 @@ bool flags_schema_builder_add_option(flags_schema_builder_t *builder, const flag
  */
 bool flags_schema_builder_add_positional(flags_schema_builder_t *builder, const flags_positional_spec_t *positional);
 /**
+ * @brief Appends a dependency rule.
+ * @param builder Builder to update.
+ * @param dependency Rule to copy.
+ * @return Whether the rule was appended.
+ */
+bool flags_schema_builder_add_dependency(flags_schema_builder_t *builder, const flags_dependency_t *dependency);
+/**
  * @brief Selects the ordering policy used by the resulting schema.
  * @param builder Builder to update.
  * @param order Ordering policy.

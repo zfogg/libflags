@@ -169,6 +169,16 @@ bool flags_validate(const flags_context_t *context) {
     if (option->storage_offset > context->storage_size || option->storage_size > context->storage_size - option->storage_offset || option->storage_size < flags_type_min_size(option))
       return false;
   }
+  for (size_t i = 0; i < context->schema->dependency_count; ++i) {
+    const flags_dependency_t *dependency = &context->schema->dependencies[i];
+    bool active = flags_was_explicitly_set(context, dependency->option_name);
+    bool related = flags_was_explicitly_set(context, dependency->related_option);
+    if (!active)
+      continue;
+    if ((dependency->type == FLAGS_DEPENDENCY_REQUIRES && !related) ||
+        (dependency->type == FLAGS_DEPENDENCY_CONFLICTS && related))
+      return false;
+  }
   return true;
 }
 

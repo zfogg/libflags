@@ -10,6 +10,9 @@ struct flags_schema_builder {
   flags_positional_spec_t *positionals;
   size_t positional_count;
   size_t positional_capacity;
+  flags_dependency_t *dependencies;
+  size_t dependency_count;
+  size_t dependency_capacity;
   flags_argument_order_t argument_order;
   flags_schema_t schema;
 };
@@ -40,6 +43,7 @@ void flags_schema_builder_destroy(flags_schema_builder_t *builder) {
     return;
   free(builder->options);
   free(builder->positionals);
+  free(builder->dependencies);
   free(builder);
 }
 
@@ -54,6 +58,15 @@ bool flags_schema_builder_add_positional(flags_schema_builder_t *builder, const 
   if (!builder || !positional || !flags_builder_grow((void **)&builder->positionals, &builder->positional_capacity, builder->positional_count, sizeof(*builder->positionals)))
     return false;
   builder->positionals[builder->positional_count++] = *positional;
+  return true;
+}
+
+bool flags_schema_builder_add_dependency(flags_schema_builder_t *builder, const flags_dependency_t *dependency) {
+  if (!builder || !dependency || !dependency->option_name || !dependency->related_option ||
+      dependency->type < FLAGS_DEPENDENCY_REQUIRES || dependency->type > FLAGS_DEPENDENCY_IMPLIES ||
+      !flags_builder_grow((void **)&builder->dependencies, &builder->dependency_capacity, builder->dependency_count, sizeof(*builder->dependencies)))
+    return false;
+  builder->dependencies[builder->dependency_count++] = *dependency;
   return true;
 }
 
@@ -72,6 +85,8 @@ const flags_schema_t *flags_schema_builder_schema(const flags_schema_builder_t *
                                              .option_count = builder->option_count,
                                              .positionals = builder->positionals,
                                              .positional_count = builder->positional_count,
-                                             .argument_order = builder->argument_order};
+                                             .argument_order = builder->argument_order,
+                                             .dependencies = builder->dependencies,
+                                             .dependency_count = builder->dependency_count};
   return &mutable_builder->schema;
 }

@@ -334,6 +334,25 @@ typedef struct flags_positional_spec {
   void *user_data;
 } flags_positional_spec_t;
 
+/** @brief Relationship enforced between two options. */
+typedef enum flags_dependency_type {
+  FLAGS_DEPENDENCY_REQUIRES,
+  FLAGS_DEPENDENCY_CONFLICTS,
+  FLAGS_DEPENDENCY_IMPLIES
+} flags_dependency_type_t;
+
+/** @brief One option dependency rule. */
+typedef struct flags_dependency {
+  /** Option whose presence activates the rule. */
+  const char *option_name;
+  /** Required, conflicting, or implied option. */
+  const char *related_option;
+  /** Rule kind. */
+  flags_dependency_type_t type;
+  /** Optional diagnostic text. */
+  const char *error_message;
+} flags_dependency_t;
+
 /**
  * @brief Describes one option and its binding into application storage.
  */
@@ -410,6 +429,10 @@ typedef struct flags_schema {
   size_t positional_count;
   /** Positional/option ordering policy. */
   flags_argument_order_t argument_order;
+  /** Dependency rules. */
+  const flags_dependency_t *dependencies;
+  /** Number of dependency rules. */
+  size_t dependency_count;
 } flags_schema_t;
 
 /**
