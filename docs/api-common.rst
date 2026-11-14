@@ -4,7 +4,15 @@ Core API
 These headers define schemas, typed values, parsing, validation, runtime
 updates, configuration, JSON adapters, completions, and generic rendering.
 
-.. c:autodoc:: libflags/flags.h libflags/flags_version.h libflags/values.h libflags/parsers.h libflags/validation.h libflags/runtime.h libflags/commands.h libflags/config.h libflags/json.h
+.. c:autodoc:: libflags/flags.h libflags/flags_version.h libflags/values.h libflags/parsers.h libflags/validation.h libflags/runtime.h libflags/commands.h
+
+Configuration and serialization
+-------------------------------
+
+The configuration and JSON adapters use the same typed schema and precedence
+rules as command-line parsing.
+
+.. c:autodoc:: libflags/config.h libflags/json.h
 
 Builder and parsing APIs
 ------------------------
