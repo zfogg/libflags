@@ -230,6 +230,16 @@ int main(void) {
   assert(flags_resolve_command_ex(root, 3, implicit_argv, &resolution));
   assert(resolution.command == mirror && resolution.used_implicit_command && !resolution.options_ended);
   flags_command_t *client = flags_command_create(root, "client", "client mode");
+  static const flags_option_spec_t shared_option = {.name = "shared"};
+  static const flags_option_spec_t override_option = {.name = "port", .description = "client port"};
+  assert(flags_command_add_option(root, &shared_option));
+  assert(flags_command_add_option(client, &override_option));
+  const flags_option_spec_t **command_options = NULL;
+  size_t command_option_count = 0;
+  assert(flags_command_collect_options(client, &command_options, &command_option_count));
+  assert(command_option_count == 2);
+  assert(command_options[0] == &override_option || command_options[1] == &override_option);
+  flags_command_free_options(command_options);
   char *explicit_argv[] = {"prog", "--port", "8080", "client"};
   assert(client && flags_resolve_command_ex(root, 4, explicit_argv, &resolution));
   assert(resolution.command == client && resolution.command_index == 3);
@@ -239,6 +249,9 @@ int main(void) {
   assert(resolution.command == mirror);
   assert(resolution.first_positional_index == 1);
   assert(!resolution.options_ended);
+  char *unknown_argv[] = {"prog", "unknown"};
+  assert(flags_resolve_command_ex(root, 2, unknown_argv, &resolution));
+  assert(resolution.command == root && !resolution.used_default_command);
   flags_command_destroy(root);
   bool enabled = false;
   uint64_t duration = 0;
