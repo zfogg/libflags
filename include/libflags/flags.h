@@ -367,6 +367,10 @@ typedef struct flags_option_spec {
   const char *metavar;
   /** Application-supplied help text. */
   const char *description;
+  /** Logical help section, or NULL for the default section. */
+  const char *group;
+  /** Whether the option must be supplied by the caller or configuration. */
+  bool required;
   /** Explicit environment name, or NULL to derive it. */
   const char *environment_name;
   /** Alternate environment names checked after environment_name/derived name. */

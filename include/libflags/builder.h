@@ -24,6 +24,8 @@ void flags_schema_builder_destroy(flags_schema_builder_t *builder);
  * @return Whether the descriptor was appended.
  * @note String members, enum tables, callbacks, and callback data remain
  * application-owned and must outlive the builder's schema view.
+ * @note Generic presentation metadata such as `description` and `group` is
+ *       copied as pointers as well; applications retain ownership of it.
  */
 bool flags_schema_builder_add_option(flags_schema_builder_t *builder, const flags_option_spec_t *option);
 /**
