@@ -67,6 +67,8 @@ static size_t flags_type_size(const flags_option_spec_t *option) {
 
 /** Returns the smallest storage width accepted for integer-compatible fields. */
 static size_t flags_type_min_size(const flags_option_spec_t *option) {
+  if (option->behavior == FLAGS_BEHAVIOR_CALLBACK && option->storage_size == 0)
+    return 0;
   if (option->type == FLAGS_TYPE_STRING && !option->dynamic_string)
     return sizeof(char);
   if (option->type == FLAGS_TYPE_INT64 || option->type == FLAGS_TYPE_PORT)
@@ -188,6 +190,10 @@ bool flags_validate(const flags_context_t *context) {
   return true;
 }
 
+void *flags_context_storage(flags_context_t *context) {
+  return context ? context->storage : NULL;
+}
+
 bool flags_set_defaults(flags_context_t *context) {
   if (!flags_validate_storage(context))
     return false;
@@ -273,7 +279,7 @@ bool flags_set(flags_context_t *context, const char *name, const flags_value_t *
       length = option->storage_size - 1;
     memcpy(destination, text, length);
     ((char *)destination)[length] = '\0';
-  } else {
+  } else if (option->storage_size != 0) {
     flags_store_value(destination, option->storage_size, option->type, value);
   }
   context->stats[index].explicitly_set = source != FLAGS_SOURCE_DEFAULT;

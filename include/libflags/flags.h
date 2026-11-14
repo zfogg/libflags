@@ -500,6 +500,13 @@ bool flags_split_arguments(int argc, char **argv, flags_parse_result_t *result);
  */
 bool flags_validate(const flags_context_t *context);
 /**
+ * @brief Returns the caller-owned storage bound to a context.
+ * @param context Context to inspect.
+ * @return Borrowed storage pointer, or NULL.
+ * @note The pointer is valid only while the context remains alive.
+ */
+void *flags_context_storage(flags_context_t *context);
+/**
  * @brief Copies one option value into caller-provided storage.
  * @param context Context to inspect.
  * @param name Canonical option name.
