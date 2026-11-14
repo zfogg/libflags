@@ -42,7 +42,7 @@ bool flags_command_set_implicit_for_option(flags_command_t *root, flags_command_
 /** Resolves a command name from argv without interpreting positional data after `--`. */
 flags_command_t *flags_resolve_command(flags_command_t *root, int argc, char **argv, int *command_index, bool *used_default);
 /** Resolves a command and returns all resolution metadata. */
-bool flags_resolve_command_ex(flags_command_t *, int, char **, flags_command_resolution_t *);
+bool flags_resolve_command_ex(flags_command_t *root, int argc, char **argv, flags_command_resolution_t *resolution);
 /** Returns the command's canonical name. */
 const char *flags_command_name(const flags_command_t *command);
 /** Returns the command's parent, or NULL for a root command. */

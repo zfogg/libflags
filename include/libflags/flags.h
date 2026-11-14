@@ -422,46 +422,46 @@ bool flags_set_text(flags_context_t *context, const char *name, const char *text
 /** Parses one textual option value without changing context storage. */
 bool flags_parse_text(const flags_context_t *context, const char *name, const char *text, flags_value_t *value);
 /** Frees a string returned by flags_get_string. */
-void flags_free_string(char *);
+void flags_free_string(char *value);
 /** Retrieves a duplicated string value. */
 bool flags_get_string(const flags_context_t *context, const char *name, char **value);
 /** Classifies a string according to an option's dash metadata. */
 bool flags_classify_stream(const flags_option_spec_t *option, const char *text, flags_stream_value_t *stream);
 /** Reports whether an option was explicitly assigned. */
-bool flags_was_explicitly_set(const flags_context_t *, const char *);
+bool flags_was_explicitly_set(const flags_context_t *context, const char *name);
 /** Returns the number of successful assignments to an option. */
-uint64_t flags_change_count(const flags_context_t *, const char *);
+uint64_t flags_change_count(const flags_context_t *context, const char *name);
 /** Reports whether the current value differs from its default. */
-bool flags_changed_from_default(const flags_context_t *, const char *);
+bool flags_changed_from_default(const flags_context_t *context, const char *name);
 /** Returns successful read count. */
-uint64_t flags_read_count(const flags_context_t *, const char *);
+uint64_t flags_read_count(const flags_context_t *context, const char *name);
 /** Returns assignment-attempt count. */
-uint64_t flags_write_count(const flags_context_t *, const char *);
+uint64_t flags_write_count(const flags_context_t *context, const char *name);
 /** Copies the last-change timestamp. */
-bool flags_last_changed_at(const flags_context_t *, const char *, struct timespec *);
+bool flags_last_changed_at(const flags_context_t *context, const char *name, struct timespec *timestamp);
 /** Copies the last-read timestamp. */
-bool flags_last_read_at(const flags_context_t *, const char *, struct timespec *);
+bool flags_last_read_at(const flags_context_t *context, const char *name, struct timespec *timestamp);
 /** Returns elapsed nanoseconds since the last change. */
-bool flags_time_since_change(const flags_context_t *, const char *, uint64_t *);
+bool flags_time_since_change(const flags_context_t *context, const char *name, uint64_t *nanoseconds);
 /** Installs or clears the context logging hook. */
-bool flags_set_logging(flags_context_t *, const flags_logging_config_t *);
+bool flags_set_logging(flags_context_t *context, const flags_logging_config_t *config);
 /** Emits a formatted diagnostic event when logging is enabled. */
-void flags_log(flags_context_t *, flags_log_level_t, flags_log_category_t, const char *, const char *, ...);
+void flags_log(flags_context_t *context, flags_log_level_t level, flags_log_category_t category, const char *option_name, const char *format, ...);
 /** Emits a value diagnostic, replacing secret values with a redaction marker. */
-void flags_log_value(flags_context_t *, flags_log_level_t, flags_log_category_t, const char *, const char *);
+void flags_log_value(flags_context_t *context, flags_log_level_t level, flags_log_category_t category, const char *option_name, const char *value);
 /** Installs per-context automatic environment-variable configuration. */
-bool flags_set_environment_config(flags_context_t *, const flags_environment_config_t *);
+bool flags_set_environment_config(flags_context_t *context, const flags_environment_config_t *config);
 /** Returns the derived or explicit environment name for an option. */
-bool flags_environment_name(const flags_context_t *, const char *, char *, size_t);
+bool flags_environment_name(const flags_context_t *context, const char *option_name, char *buffer, size_t buffer_size);
 /** Derives an environment name from a prefix and canonical option name. */
-bool flags_derive_environment_name(const char *, const char *, char *, size_t);
+bool flags_derive_environment_name(const char *prefix, const char *option_name, char *buffer, size_t buffer_size);
 /** Applies present environment variables using environment precedence. */
 bool flags_apply_environment(flags_context_t *);
 /** Reads one value and returns the context revision observed with it. */
-bool flags_runtime_read(const flags_context_t *, const char *, flags_value_t *, uint64_t *);
+bool flags_runtime_read(const flags_context_t *context, const char *name, flags_value_t *value, uint64_t *revision);
 /** Applies one value if the expected revision still matches. */
-bool flags_runtime_apply(flags_context_t *, const char *, const flags_value_t *, uint64_t, flags_source_t, uint64_t *);
+bool flags_runtime_apply(flags_context_t *context, const char *name, const flags_value_t *value, uint64_t expected_revision, flags_source_t source, uint64_t *revision);
 /** Returns the current context revision. */
-uint64_t flags_runtime_revision(const flags_context_t *);
+uint64_t flags_runtime_revision(const flags_context_t *context);
 /** Applies an all-or-nothing batch at one expected revision. */
-bool flags_runtime_apply_batch(flags_context_t *, const flags_update_t *, size_t, uint64_t, flags_source_t, uint64_t *);
+bool flags_runtime_apply_batch(flags_context_t *context, const flags_update_t *updates, size_t update_count, uint64_t expected_revision, flags_source_t source, uint64_t *revision);
