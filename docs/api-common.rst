@@ -19,7 +19,7 @@ Configuration and completion APIs
 Manpage APIs
 ------------
 
-.. c:autodoc:: libflags/manpage/formatter.h libflags/manpage/manpage.h libflags/manpage/merger.h libflags/manpage/parser.h libflags/manpage/resources.h
+.. c:autodoc:: libflags/manpage/formatter.h libflags/manpage/manpage.h libflags/manpage/merger.h libflags/manpage/parser.h libflags/manpage/resources.h libflags/manpage/content/environment.h libflags/manpage/content/examples.h libflags/manpage/content/options.h libflags/manpage/content/positional.h libflags/manpage/content/usage.h
 
 Utilities
 ---------

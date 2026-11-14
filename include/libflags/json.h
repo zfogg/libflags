@@ -2,7 +2,9 @@
  * @brief JSON integration boundary for libflags consumers.
  *
  * JSON is a transport/serialization format; libflags retains typed schema
- * storage as the primary model.
+ * storage as the primary model. JSON object keys are canonical option names;
+ * values are converted through the same descriptors used by command-line,
+ * environment, and TOML updates.
  */
 #pragma once
 #include <libflags/flags.h>
@@ -17,10 +19,28 @@ typedef struct flags_patch_result {
   size_t changed_count;
 } flags_patch_result_t;
 
-/** Applies a JSON object as one typed, revision-checked update batch. */
+/**
+ * Applies a JSON object as one typed, revision-checked update batch.
+ *
+ * The update is atomic: invalid input or a stale expected revision leaves the
+ * context unchanged. Pass the revision returned by a previous snapshot, or
+ * use the current revision when no optimistic concurrency check is needed.
+ *
+ * @param context Context whose bound storage will be updated.
+ * @param json UTF-8 JSON object containing canonical option names.
+ * @param json_size Number of bytes in @p json.
+ * @param expected_revision Required context revision.
+ * @param source Provenance recorded for each successful assignment.
+ * @param result Optional result summary.
+ * @return true when the JSON document was valid and applied or was a no-op.
+ */
 bool flags_apply_json(flags_context_t *, const char *, size_t, uint64_t, flags_source_t, flags_patch_result_t *);
 
-/** Serializes the current typed values into a caller-owned JSON string. */
+/**
+ * Serializes the current typed values into a caller-owned JSON string.
+ *
+ * The returned string must be released with flags_free_json().
+ */
 bool flags_snapshot_json(const flags_context_t *, char **, uint64_t *);
 
 /** Frees a string returned by flags_snapshot_json(). */

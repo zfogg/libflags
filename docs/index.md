@@ -36,5 +36,6 @@ without sharing mutable values or runtime statistics.
 - `flags_parser.h`, `parsing/`, and `parsers.h` — command-line and text parsing.
 - `runtime.h` — synchronized reads, writes, revisions, and atomic batches.
 - `config.h`, `json.h`, and `config/` — configuration adapters.
-- `completions/` and `manpage/` — generic generated shell and documentation output.
+- `completions/` and `manpage/` — generic generated shell and documentation output,
+  including reusable usage, options, positional, environment, and examples sections.
 - `util/ip.h` and `util/url.h` — reusable network-string helpers.
