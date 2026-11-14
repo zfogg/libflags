@@ -7,9 +7,12 @@
 
 /** Shell dialect understood by flags_completion_write(). */
 typedef enum flags_completion_shell {
-  FLAGS_COMPLETION_BASH, /**< Bash completion function syntax. */
-  FLAGS_COMPLETION_ZSH,  /**< Zsh completion function syntax. */
-  FLAGS_COMPLETION_FISH  /**< Fish completion command syntax. */
+  /** Bash completion function syntax. */
+  FLAGS_COMPLETION_BASH,
+  /** Zsh completion function syntax. */
+  FLAGS_COMPLETION_ZSH,
+  /** Fish completion command syntax. */
+  FLAGS_COMPLETION_FISH
 } flags_completion_shell_t;
 
 /**
