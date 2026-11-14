@@ -1,10 +1,3 @@
-/** @file
- * @brief Generic groff manpage generation.
- *
- * The generator owns the schema-derived option section. Applications retain
- * ownership of command-specific prose and may compose it with the generated
- * output using the formatter and merge facades.
- */
 #pragma once
 #include <stdio.h>
 #include <libflags/flags.h>
