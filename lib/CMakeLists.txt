@@ -3,6 +3,7 @@ set(LIBFLAGS_SOURCES
   json.c
   log.c
   commands.c
+  levenshtein.c
   parsing/parsers.c
   builder/builder.c
   config/config.c
