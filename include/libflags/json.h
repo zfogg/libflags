@@ -43,14 +43,14 @@ typedef struct flags_patch_result {
  * @param result Optional result summary.
  * @return true when the JSON document was valid and applied or was a no-op.
  */
-bool flags_apply_json(flags_context_t *, const char *, size_t, uint64_t, flags_source_t, flags_patch_result_t *);
+bool flags_apply_json(flags_context_t *context, const char *json, size_t length, uint64_t expected_revision, flags_source_t source, flags_patch_result_t *result);
 
 /**
  * Serializes the current typed values into a caller-owned JSON string.
  *
  * The returned string must be released with flags_free_json().
  */
-bool flags_snapshot_json(const flags_context_t *, char **, uint64_t *);
+bool flags_snapshot_json(const flags_context_t *context, char **out_json, uint64_t *out_revision);
 
 /** Frees a string returned by flags_snapshot_json(). */
-void flags_free_json(char *);
+void flags_free_json(char *json);

@@ -396,37 +396,37 @@ typedef struct flags_schema {
 } flags_schema_t;
 
 /** Creates an independent context bound to caller-owned storage. */
-flags_context_t *flags_create(const flags_schema_t *, void *, size_t);
+flags_context_t *flags_create(const flags_schema_t *schema, void *storage, size_t storage_size);
 /** Returns the immutable schema associated with a context. */
-const flags_schema_t *flags_context_schema(const flags_context_t *);
+const flags_schema_t *flags_context_schema(const flags_context_t *context);
 /** Destroys a context without destroying caller-owned storage. */
-void flags_destroy(flags_context_t *);
+void flags_destroy(flags_context_t *context);
 /** Destroys a context while leaving dynamic values in bound storage. */
-void flags_destroy_preserving_storage(flags_context_t *);
+void flags_destroy_preserving_storage(flags_context_t *context);
 /** Copies schema defaults into bound storage. */
-bool flags_set_defaults(flags_context_t *);
+bool flags_set_defaults(flags_context_t *context);
 /** Parses flags and returns borrowed positional arguments. */
-bool flags_parse(flags_context_t *, int, char **, flags_parse_result_t *);
+bool flags_parse(flags_context_t *context, int argc, char **argv, flags_parse_result_t *result);
 /** Applies a positional-only schema to borrowed values beginning at argv[0]. */
-bool flags_parse_positionals(flags_context_t *, int, char **);
+bool flags_parse_positionals(flags_context_t *context, int argc, char **argv);
 /** Splits options from positional arguments without requiring a value schema. */
-bool flags_split_arguments(int, char **, flags_parse_result_t *);
+bool flags_split_arguments(int argc, char **argv, flags_parse_result_t *result);
 /** Validates that a context has usable storage. */
-bool flags_validate(const flags_context_t *);
+bool flags_validate(const flags_context_t *context);
 /** Copies one option value into caller-provided storage. */
-bool flags_get(const flags_context_t *, const char *, flags_value_t *);
+bool flags_get(const flags_context_t *context, const char *name, flags_value_t *value);
 /** Validates and assigns one option value. */
-bool flags_set(flags_context_t *, const char *, const flags_value_t *, flags_source_t);
+bool flags_set(flags_context_t *context, const char *name, const flags_value_t *value, flags_source_t source);
 /** Parses and assigns one textual option value through the descriptor parser. */
-bool flags_set_text(flags_context_t *, const char *, const char *, flags_source_t);
+bool flags_set_text(flags_context_t *context, const char *name, const char *text, flags_source_t source);
 /** Parses one textual option value without changing context storage. */
-bool flags_parse_text(const flags_context_t *, const char *, const char *, flags_value_t *);
+bool flags_parse_text(const flags_context_t *context, const char *name, const char *text, flags_value_t *value);
 /** Frees a string returned by flags_get_string. */
 void flags_free_string(char *);
 /** Retrieves a duplicated string value. */
-bool flags_get_string(const flags_context_t *, const char *, char **);
+bool flags_get_string(const flags_context_t *context, const char *name, char **value);
 /** Classifies a string according to an option's dash metadata. */
-bool flags_classify_stream(const flags_option_spec_t *, const char *, flags_stream_value_t *);
+bool flags_classify_stream(const flags_option_spec_t *option, const char *text, flags_stream_value_t *stream);
 /** Reports whether an option was explicitly assigned. */
 bool flags_was_explicitly_set(const flags_context_t *, const char *);
 /** Returns the number of successful assignments to an option. */
