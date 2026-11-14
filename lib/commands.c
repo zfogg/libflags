@@ -250,8 +250,10 @@ bool flags_resolve_command_ex(flags_command_t *root, int argc, char **argv, flag
       continue;
     }
     flags_command_t *child = find_child(command, argv[i]);
-    if (!child)
+    if (!child) {
+      result->used_default_command = false;
       break;
+    }
     command = child;
     result->command_index = i;
     result->used_default_command = false;
