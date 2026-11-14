@@ -9,11 +9,11 @@ static size_t primitive_size(flags_value_type_t type) {
   case FLAGS_TYPE_BOOL:
     return sizeof(bool);
   case FLAGS_TYPE_INT64:
-    return sizeof(int64_t);
+    return sizeof(int32_t);
   case FLAGS_TYPE_UINT64:
-    return sizeof(uint64_t);
+    return sizeof(uint32_t);
   case FLAGS_TYPE_DOUBLE:
-    return sizeof(double);
+    return sizeof(float);
   case FLAGS_TYPE_STRING:
     return sizeof(char);
   default:
