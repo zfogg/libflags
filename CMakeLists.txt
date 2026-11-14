@@ -54,6 +54,8 @@ else()
     target_include_directories(libflags-tomlc17 PUBLIC "${tomlc17_SOURCE_DIR}/src")
   endif()
 endif()
+
+set_target_properties(libflags-tomlc17 PROPERTIES POSITION_INDEPENDENT_CODE ON)
 libflags_configure_pcre2()
 libflags_configure_yyjson()
 add_subdirectory(lib)
