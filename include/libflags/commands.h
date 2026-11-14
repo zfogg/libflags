@@ -110,6 +110,22 @@ flags_command_t *flags_resolve_command(flags_command_t *root, int argc, char **a
  * @return Whether resolution succeeded.
  */
 bool flags_resolve_command_ex(flags_command_t *root, int argc, char **argv, flags_command_resolution_t *resolution);
+
+/**
+ * @brief Rejects root-only options placed after a selected command.
+ *
+ * @param context Context whose diagnostic hook receives the failure.
+ * @param root Root command whose option scopes are inspected.
+ * @param argc Argument count.
+ * @param argv Argument vector.
+ * @param resolution Resolution previously returned by
+ *        flags_resolve_command_ex().
+ * @return `true` when option ordering is valid; `false` otherwise.
+ * @note The callback receives a complete diagnostic sentence but libflags
+ *       does not choose its severity, formatting, or output destination.
+ */
+bool flags_command_validate_order(flags_context_t *context, const flags_command_t *root, int argc, char **argv,
+                                  const flags_command_resolution_t *resolution);
 /**
  * @brief Returns the command's canonical name.
  * @param command Command to inspect.

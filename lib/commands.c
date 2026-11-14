@@ -1,7 +1,10 @@
 #include <libflags/commands.h>
 #include <libplatform/util/string.h>
 
+#include "internal/context.h"
+
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 /** Private command-tree node. */
@@ -179,6 +182,33 @@ static const flags_option_spec_t *find_option(flags_command_t *command, const ch
   return NULL;
 }
 
+static const flags_option_spec_t *find_direct_option(const flags_command_t *command, const char *name, size_t length) {
+  if (!command)
+    return NULL;
+  for (size_t i = 0; i < command->option_count; ++i) {
+    const flags_option_spec_t *option = command->options[i];
+    if ((strlen(option->name) == length && strncmp(option->name, name, length) == 0) ||
+        (length == 1 && option->short_name == name[0]))
+      return option;
+  }
+  return NULL;
+}
+
+static void report_order_error(flags_context_t *context, const char *option_name, const char *command_name) {
+  if (!context || !context->logging.callback)
+    return;
+  char message[512];
+  snprintf(message, sizeof(message), "Binary-level option '--%s' must appear before the mode '%s', not after it", option_name, command_name);
+  flags_log_event_t event = {
+      .message = message,
+      .option_name = option_name,
+      .command_name = command_name,
+      .source = FLAGS_SOURCE_COMMAND_LINE,
+      .revision = context->revision,
+  };
+  context->logging.callback(&event, context->logging.user_data);
+}
+
 bool flags_resolve_command_ex(flags_command_t *root, int argc, char **argv, flags_command_resolution_t *result) {
   if (!root || argc < 0 || (argc && !argv) || !result)
     return false;
@@ -227,6 +257,32 @@ bool flags_resolve_command_ex(flags_command_t *root, int argc, char **argv, flag
     command = root->default_command;
   result->command = command;
   result->options_ended = ended;
+  return true;
+}
+
+bool flags_command_validate_order(flags_context_t *context, const flags_command_t *root, int argc, char **argv,
+                                  const flags_command_resolution_t *resolution) {
+  if (!root || argc < 0 || (argc > 0 && !argv) || !resolution || resolution->command_index < 0)
+    return true;
+
+  for (int i = resolution->command_index + 1; i < argc; ++i) {
+    const char *argument = argv[i];
+    if (!argument || argument[0] != '-' || argument[1] == '\0' || !strcmp(argument, "--"))
+      continue;
+    const char *name = argument + 1;
+    if (*name == '-')
+      ++name;
+    const char *equals = strchr(name, '=');
+    size_t length = equals ? (size_t)(equals - name) : strlen(name);
+    if (find_direct_option(root, name, length)) {
+      char option_name[128];
+      size_t copy_length = length < sizeof(option_name) - 1 ? length : sizeof(option_name) - 1;
+      memcpy(option_name, name, copy_length);
+      option_name[copy_length] = '\0';
+      report_order_error(context, option_name, flags_command_name(resolution->command));
+      return false;
+    }
+  }
   return true;
 }
 
