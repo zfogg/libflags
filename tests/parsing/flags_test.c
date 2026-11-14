@@ -46,6 +46,9 @@ int main(void) {
   assert(flags_storage_is_set(FLAGS_TYPE_INT64, &stored, sizeof(stored), &initial, sizeof(initial)));
   assert(flags_storage_apply_text(FLAGS_TYPE_INT64, &stored, sizeof(stored), "7"));
   assert(stored == 7);
+  const flags_lookup_entry_t lookup[] = {{"AUTO", 4}, {"manual", 9}, {NULL, 0}};
+  assert(flags_parse_lookup("auto", lookup, &stored));
+  assert(stored == 4);
 
   fixed_values_t fixed_values = {0};
   static const flags_option_spec_t fixed_option = {.name = "name", .type = FLAGS_TYPE_STRING, .storage_offset = offsetof(fixed_values_t, name), .storage_size = sizeof fixed_values.name};
