@@ -9,6 +9,7 @@ set(LIBFLAGS_SOURCES
   builder/builder.c
   config/config.c
     config/keys.c
+    storage.c
   completions/completions.c
   manpage/manpage.c
   manpage/formatter.c
