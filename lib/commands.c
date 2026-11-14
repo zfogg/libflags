@@ -74,6 +74,55 @@ bool flags_command_add_option(flags_command_t *command, const flags_option_spec_
   return true;
 }
 
+static bool flags_command_collect_into(const flags_command_t *command, const flags_option_spec_t ***items, size_t *count, size_t *capacity) {
+  if (!command)
+    return true;
+  if (!flags_command_collect_into(command->parent, items, count, capacity))
+    return false;
+  for (size_t i = 0; i < command->option_count; ++i) {
+    const flags_option_spec_t *candidate = command->options[i];
+    size_t existing = SIZE_MAX;
+    for (size_t j = 0; j < *count; ++j)
+      if (!strcmp((*items)[j]->name, candidate->name)) {
+        existing = j;
+        break;
+      }
+    if (existing != SIZE_MAX) {
+      (*items)[existing] = candidate;
+      continue;
+    }
+    if (*count == *capacity) {
+      size_t next = *capacity ? *capacity * 2 : 8;
+      const flags_option_spec_t **grown = realloc((void *)*items, next * sizeof(*grown));
+      if (!grown)
+        return false;
+      *items = grown;
+      *capacity = next;
+    }
+    (*items)[(*count)++] = candidate;
+  }
+  return true;
+}
+
+bool flags_command_collect_options(const flags_command_t *command, const flags_option_spec_t ***options, size_t *count) {
+  if (!command || !options || !count)
+    return false;
+  *options = NULL;
+  *count = 0;
+  size_t capacity = 0;
+  if (!flags_command_collect_into(command, options, count, &capacity)) {
+    free((void *)*options);
+    *options = NULL;
+    *count = 0;
+    return false;
+  }
+  return true;
+}
+
+void flags_command_free_options(const flags_option_spec_t **options) {
+  free((void *)options);
+}
+
 bool flags_command_set_handler(flags_command_t *command, int (*handler)(flags_context_t *, void *), void *user_data) {
   if (!command)
     return false;
