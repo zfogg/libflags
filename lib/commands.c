@@ -252,7 +252,7 @@ bool flags_resolve_command_ex(flags_command_t *root, int argc, char **argv, flag
     result->command_index = i;
     result->used_default_command = false;
   }
-  if (command == root && root->default_command && (result->first_positional_index < 0 || result->options_ended))
+  if (command == root && root->default_command && (result->first_positional_index < 0 || ended))
     command = root->default_command;
   result->command = command;
   result->options_ended = ended;
