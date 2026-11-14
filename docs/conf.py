@@ -13,7 +13,7 @@ exclude_patterns = ["_build", "generated"]
 hawkmoth_root = str(Path(__file__).resolve().parents[1] / "include")
 hawkmoth_compiler = "clang"
 hawkmoth_autoconf = []
-hawkmoth_clang = ["-I", str(Path(__file__).resolve().parents[1] / "include")]
+hawkmoth_clang = ["-std=c23", "-I", str(Path(__file__).resolve().parents[1] / "include")]
 hawkmoth_transform_default = "javadoc"
 html_theme = "alabaster"
 html_title = "libflags"
