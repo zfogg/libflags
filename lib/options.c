@@ -616,13 +616,21 @@ bool flags_apply_environment(flags_context_t *context) {
     return false;
   for (size_t i = 0; i < context->schema->option_count; ++i) {
     char name[256];
-    if (!flags_environment_name(context, context->schema->options[i].name, name, sizeof(name)))
-      continue;
-    const char *text = platform_getenv(name);
+    const flags_option_spec_t *option = &context->schema->options[i];
+    const char *text = NULL;
+    if (flags_environment_name(context, option->name, name, sizeof(name)))
+      text = platform_getenv(name);
+    if (!text) {
+      for (size_t alias = 0; alias < option->environment_alias_count; ++alias) {
+        const char *candidate = option->environment_aliases[alias];
+        if (candidate && (text = platform_getenv(candidate)) != NULL)
+          break;
+      }
+    }
     if (!text)
       continue;
     flags_value_t value = {0};
-    if (!flags_parse_value(context, &context->schema->options[i], text, &value) || !flags_set(context, context->schema->options[i].name, &value, FLAGS_SOURCE_ENVIRONMENT))
+    if (!flags_parse_value(context, option, text, &value) || !flags_set(context, option->name, &value, FLAGS_SOURCE_ENVIRONMENT))
       return false;
   }
   return true;

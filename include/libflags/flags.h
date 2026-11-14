@@ -350,6 +350,10 @@ typedef struct flags_option_spec {
   const char *description;
   /** Explicit environment name, or NULL to derive it. */
   const char *environment_name;
+  /** Alternate environment names checked after environment_name/derived name. */
+  const char *const *environment_aliases;
+  /** Number of entries in environment_aliases. */
+  size_t environment_alias_count;
   /** Optional one-character name. */
   char short_name;
   /** Storage/value type. */
