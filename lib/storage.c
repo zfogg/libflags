@@ -6,12 +6,18 @@
 
 static size_t primitive_size(flags_value_type_t type) {
   switch (type) {
-  case FLAGS_TYPE_BOOL: return sizeof(bool);
-  case FLAGS_TYPE_INT64: return sizeof(int64_t);
-  case FLAGS_TYPE_UINT64: return sizeof(uint64_t);
-  case FLAGS_TYPE_DOUBLE: return sizeof(double);
-  case FLAGS_TYPE_STRING: return sizeof(char);
-  default: return 0;
+  case FLAGS_TYPE_BOOL:
+    return sizeof(bool);
+  case FLAGS_TYPE_INT64:
+    return sizeof(int64_t);
+  case FLAGS_TYPE_UINT64:
+    return sizeof(uint64_t);
+  case FLAGS_TYPE_DOUBLE:
+    return sizeof(double);
+  case FLAGS_TYPE_STRING:
+    return sizeof(char);
+  default:
+    return 0;
   }
 }
 
@@ -38,35 +44,42 @@ bool flags_storage_apply_text(flags_value_type_t type, void *field, size_t field
   if (type == FLAGS_TYPE_BOOL) {
     bool value;
     if (!text) {
-      if (field_size < sizeof(value)) return false;
+      if (field_size < sizeof(value))
+        return false;
       memcpy(&value, field, sizeof(value));
       value = !value;
     } else if (!flags_parse_bool_relaxed(text, &value)) {
       return false;
     }
-    if (field_size < sizeof(value)) return false;
+    if (field_size < sizeof(value))
+      return false;
     memcpy(field, &value, sizeof(value));
     return true;
   }
   if (type == FLAGS_TYPE_DOUBLE) {
     double value;
-    if (!flags_parse_double(text, &value) || field_size < sizeof(value)) return false;
+    if (!flags_parse_double(text, &value) || field_size < sizeof(value))
+      return false;
     memcpy(field, &value, sizeof(value));
     return true;
   }
   if (type == FLAGS_TYPE_INT64) {
     char *end = NULL;
     long long value = text ? strtoll(text, &end, 10) : 0;
-    if (!text || end == text || *end != '\0' || field_size < sizeof(int)) return false;
+    if (!text || end == text || *end != '\0' || field_size < sizeof(int))
+      return false;
     int narrowed = (int)value;
-    if ((long long)narrowed != value) return false;
+    if ((long long)narrowed != value)
+      return false;
     memcpy(field, &narrowed, sizeof(narrowed));
     return true;
   }
   if (type == FLAGS_TYPE_STRING) {
-    if (!text || field_size == 0) return false;
+    if (!text || field_size == 0)
+      return false;
     size_t length = strlen(text);
-    if (length >= field_size) length = field_size - 1;
+    if (length >= field_size)
+      length = field_size - 1;
     memcpy(field, text, length);
     ((char *)field)[length] = '\0';
     return true;

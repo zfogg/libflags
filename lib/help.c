@@ -77,8 +77,7 @@ bool flags_help_write_options(const flags_schema_t *schema, const char *program_
   for (size_t i = 0; i < schema->option_count; ++i) {
     const flags_option_spec_t *option = &schema->options[i];
     char spelling[256];
-    int written = option->short_name ? snprintf(spelling, sizeof(spelling), "-%c, --%s", option->short_name, option->name)
-                                     : snprintf(spelling, sizeof(spelling), "--%s", option->name);
+    int written = option->short_name ? snprintf(spelling, sizeof(spelling), "-%c, --%s", option->short_name, option->name) : snprintf(spelling, sizeof(spelling), "--%s", option->name);
     if (written < 0 || (size_t)written >= sizeof(spelling))
       return false;
     const char *placeholder = flags_help_placeholder(option);
@@ -88,8 +87,7 @@ bool flags_help_write_options(const flags_schema_t *schema, const char *program_
     }
     char default_value[128];
     const char *default_text = flags_help_default(option, default_value, sizeof(default_value));
-    fprintf(output, "  %-*s  %s%s\n", (int)width, spelling,
-            option->description ? option->description : "Option value.", option->required ? " (required)" : "");
+    fprintf(output, "  %-*s  %s%s\n", (int)width, spelling, option->description ? option->description : "Option value.", option->required ? " (required)" : "");
     if (default_text)
       fprintf(output, "  %*s  (default: %s)\n", (int)width, "", default_text);
   }

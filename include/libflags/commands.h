@@ -124,8 +124,7 @@ bool flags_resolve_command_ex(flags_command_t *root, int argc, char **argv, flag
  * @note The callback receives a complete diagnostic sentence but libflags
  *       does not choose its severity, formatting, or output destination.
  */
-bool flags_command_validate_order(flags_context_t *context, const flags_command_t *root, int argc, char **argv,
-                                  const flags_command_resolution_t *resolution);
+bool flags_command_validate_order(flags_context_t *context, const flags_command_t *root, int argc, char **argv, const flags_command_resolution_t *resolution);
 /**
  * @brief Returns the command's canonical name.
  * @param command Command to inspect.

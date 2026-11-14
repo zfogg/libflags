@@ -95,9 +95,8 @@ int main(void) {
   assert(large_integer == INT64_C(9223372036854770000));
   flags_destroy(integer_context);
   narrow_values_t narrow_values = {0};
-  const flags_option_spec_t narrow_options[] = {
-      {.name = "value", .type = FLAGS_TYPE_INT64, .storage_offset = offsetof(narrow_values_t, value), .storage_size = sizeof narrow_values.value},
-      {.name = "ratio", .type = FLAGS_TYPE_DOUBLE, .storage_offset = offsetof(narrow_values_t, ratio), .storage_size = sizeof narrow_values.ratio}};
+  const flags_option_spec_t narrow_options[] = {{.name = "value", .type = FLAGS_TYPE_INT64, .storage_offset = offsetof(narrow_values_t, value), .storage_size = sizeof narrow_values.value},
+                                                {.name = "ratio", .type = FLAGS_TYPE_DOUBLE, .storage_offset = offsetof(narrow_values_t, ratio), .storage_size = sizeof narrow_values.ratio}};
   const flags_schema_t narrow_schema = {.options = narrow_options, .option_count = 2};
   flags_context_t *narrow_context = flags_create(&narrow_schema, &narrow_values, sizeof narrow_values);
   assert(narrow_context && flags_set_text(narrow_context, "value", "123456", FLAGS_SOURCE_CONFIG));

@@ -62,8 +62,7 @@ bool flags_schema_builder_add_positional(flags_schema_builder_t *builder, const 
 }
 
 bool flags_schema_builder_add_dependency(flags_schema_builder_t *builder, const flags_dependency_t *dependency) {
-  if (!builder || !dependency || !dependency->option_name || !dependency->related_option ||
-      dependency->type < FLAGS_DEPENDENCY_REQUIRES || dependency->type > FLAGS_DEPENDENCY_IMPLIES ||
+  if (!builder || !dependency || !dependency->option_name || !dependency->related_option || dependency->type < FLAGS_DEPENDENCY_REQUIRES || dependency->type > FLAGS_DEPENDENCY_IMPLIES ||
       !flags_builder_grow((void **)&builder->dependencies, &builder->dependency_capacity, builder->dependency_count, sizeof(*builder->dependencies)))
     return false;
   builder->dependencies[builder->dependency_count++] = *dependency;

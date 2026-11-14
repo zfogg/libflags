@@ -183,8 +183,7 @@ bool flags_validate(const flags_context_t *context) {
     bool related = flags_was_explicitly_set(context, dependency->related_option);
     if (!active)
       continue;
-    if ((dependency->type == FLAGS_DEPENDENCY_REQUIRES && !related) ||
-        (dependency->type == FLAGS_DEPENDENCY_CONFLICTS && related))
+    if ((dependency->type == FLAGS_DEPENDENCY_REQUIRES && !related) || (dependency->type == FLAGS_DEPENDENCY_CONFLICTS && related))
       return false;
   }
   return true;

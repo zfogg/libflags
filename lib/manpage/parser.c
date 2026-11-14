@@ -34,9 +34,8 @@ static flags_manpage_section_type_t marker_type(const char *line) {
     const char *prefix;
     size_t length;
     flags_manpage_section_type_t type;
-  } markers[] = {{"AUTO-START:", 11, FLAGS_MANPAGE_SECTION_AUTO}, {"AUTO-END:", 9, FLAGS_MANPAGE_SECTION_AUTO},
-                 {"MANUAL-START:", 13, FLAGS_MANPAGE_SECTION_MANUAL}, {"MANUAL-END:", 11, FLAGS_MANPAGE_SECTION_MANUAL},
-                 {"MERGE-START:", 12, FLAGS_MANPAGE_SECTION_MERGE}, {"MERGE-END:", 10, FLAGS_MANPAGE_SECTION_MERGE}};
+  } markers[] = {{"AUTO-START:", 11, FLAGS_MANPAGE_SECTION_AUTO},   {"AUTO-END:", 9, FLAGS_MANPAGE_SECTION_AUTO},      {"MANUAL-START:", 13, FLAGS_MANPAGE_SECTION_MANUAL},
+                 {"MANUAL-END:", 11, FLAGS_MANPAGE_SECTION_MANUAL}, {"MERGE-START:", 12, FLAGS_MANPAGE_SECTION_MERGE}, {"MERGE-END:", 10, FLAGS_MANPAGE_SECTION_MERGE}};
   for (size_t i = 0; i < sizeof(markers) / sizeof(markers[0]); ++i) {
     if (strncmp(p, markers[i].prefix, markers[i].length) == 0) {
       return markers[i].type;
@@ -82,7 +81,8 @@ static long read_line(FILE *input, char **line, size_t *capacity) {
   if (!*line) {
     *capacity = 256;
     *line = malloc(*capacity);
-    if (!*line) return -1;
+    if (!*line)
+      return -1;
   }
   size_t length = 0;
   int character;
@@ -90,13 +90,16 @@ static long read_line(FILE *input, char **line, size_t *capacity) {
     if (length + 2 > *capacity) {
       *capacity *= 2;
       char *grown = realloc(*line, *capacity);
-      if (!grown) return -1;
+      if (!grown)
+        return -1;
       *line = grown;
     }
     (*line)[length++] = (char)character;
-    if (character == '\n') break;
+    if (character == '\n')
+      break;
   }
-  if (length == 0 && character == EOF) return -1;
+  if (length == 0 && character == EOF)
+    return -1;
   (*line)[length] = '\0';
   return (long)length;
 }

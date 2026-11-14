@@ -335,11 +335,7 @@ typedef struct flags_positional_spec {
 } flags_positional_spec_t;
 
 /** @brief Relationship enforced between two options. */
-typedef enum flags_dependency_type {
-  FLAGS_DEPENDENCY_REQUIRES,
-  FLAGS_DEPENDENCY_CONFLICTS,
-  FLAGS_DEPENDENCY_IMPLIES
-} flags_dependency_type_t;
+typedef enum flags_dependency_type { FLAGS_DEPENDENCY_REQUIRES, FLAGS_DEPENDENCY_CONFLICTS, FLAGS_DEPENDENCY_IMPLIES } flags_dependency_type_t;
 
 /** @brief One option dependency rule. */
 typedef struct flags_dependency {

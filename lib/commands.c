@@ -187,8 +187,7 @@ static const flags_option_spec_t *find_direct_option(const flags_command_t *comm
     return NULL;
   for (size_t i = 0; i < command->option_count; ++i) {
     const flags_option_spec_t *option = command->options[i];
-    if ((strlen(option->name) == length && strncmp(option->name, name, length) == 0) ||
-        (length == 1 && option->short_name == name[0]))
+    if ((strlen(option->name) == length && strncmp(option->name, name, length) == 0) || (length == 1 && option->short_name == name[0]))
       return option;
   }
   return NULL;
@@ -260,8 +259,7 @@ bool flags_resolve_command_ex(flags_command_t *root, int argc, char **argv, flag
   return true;
 }
 
-bool flags_command_validate_order(flags_context_t *context, const flags_command_t *root, int argc, char **argv,
-                                  const flags_command_resolution_t *resolution) {
+bool flags_command_validate_order(flags_context_t *context, const flags_command_t *root, int argc, char **argv, const flags_command_resolution_t *resolution) {
   if (!root || argc < 0 || (argc > 0 && !argv) || !resolution || resolution->command_index < 0)
     return true;
 
