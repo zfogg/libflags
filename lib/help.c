@@ -1,6 +1,4 @@
 #include <libflags/help.h>
-#include <libflags/manpage/formatter.h>
-
 #include <string.h>
 
 static const char *flags_help_placeholder(const flags_option_spec_t *option) {
