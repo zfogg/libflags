@@ -11,7 +11,7 @@ The public headers are the reference. The API pages below are generated from
 those headers with Hawkmoth, so declarations and documentation stay together.
 
 ```{toctree}
-:maxdepth: 2
+:maxdepth: 3
 
 api
 topics/architecture
