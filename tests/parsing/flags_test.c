@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <libflags/flags.h>
 #include <libflags/config/keys.h>
+#include <libflags/storage.h>
 #include <libflags/commands.h>
 #include <libflags/values.h>
 #include <libflags/config.h>
@@ -39,6 +40,12 @@ int main(void) {
   assert(!strcmp(key, "network.bind_address"));
   assert(flags_config_make_cli_flag("bind-address", key, sizeof(key)));
   assert(!strcmp(key, "--bind-address"));
+
+  int stored = 3;
+  int initial = 2;
+  assert(flags_storage_is_set(FLAGS_TYPE_INT64, &stored, sizeof(stored), &initial, sizeof(initial)));
+  assert(flags_storage_apply_text(FLAGS_TYPE_INT64, &stored, sizeof(stored), "7"));
+  assert(stored == 7);
 
   fixed_values_t fixed_values = {0};
   static const flags_option_spec_t fixed_option = {.name = "name", .type = FLAGS_TYPE_STRING, .storage_offset = offsetof(fixed_values_t, name), .storage_size = sizeof fixed_values.name};
