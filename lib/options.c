@@ -389,6 +389,13 @@ bool flags_parse_text(const flags_context_t *context, const char *name, const ch
 
 bool flags_set_text(flags_context_t *context, const char *name, const char *text, flags_source_t source) {
   flags_value_t value = {0};
+  const flags_option_spec_t *option = context && name ? flags_lookup(context->schema, name) : NULL;
+  if (!text && option && option->type == FLAGS_TYPE_BOOL && option->argument_requirement == FLAGS_ARGUMENT_NONE) {
+    if (!flags_get(context, name, &value))
+      return false;
+    value.boolean = !value.boolean;
+    return flags_set(context, name, &value, source);
+  }
   return flags_parse_text(context, name, text, &value) && flags_set(context, name, &value, source);
 }
 
