@@ -20,8 +20,7 @@ size_t flags_levenshtein_n(const char *a, size_t a_length, const char *b, size_t
       const size_t substitution = previous + (a[i - 1] != b[j - 1]);
       const size_t insertion = row[i - 1] + 1;
       const size_t deletion = row[i] + 1;
-      row[i] = substitution < insertion ? (substitution < deletion ? substitution : deletion)
-                                        : (insertion < deletion ? insertion : deletion);
+      row[i] = substitution < insertion ? (substitution < deletion ? substitution : deletion) : (insertion < deletion ? insertion : deletion);
       previous = saved;
     }
   }
