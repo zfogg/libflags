@@ -73,7 +73,43 @@ static size_t flags_type_min_size(const flags_option_spec_t *option) {
     return sizeof(int32_t);
   if (option->type == FLAGS_TYPE_UINT64 || option->type == FLAGS_TYPE_DURATION || option->type == FLAGS_TYPE_SIZE || option->type == FLAGS_TYPE_RATE)
     return sizeof(uint32_t);
+  if (option->type == FLAGS_TYPE_DOUBLE)
+    return sizeof(float);
   return flags_type_size(option);
+}
+
+static void flags_store_value(void *destination, size_t size, flags_value_type_t type, const flags_value_t *value) {
+  if (type == FLAGS_TYPE_INT64 && size < sizeof(value->integer)) {
+    int32_t narrowed = (int32_t)value->integer;
+    memcpy(destination, &narrowed, size);
+  } else if (type == FLAGS_TYPE_UINT64 && size < sizeof(value->unsigned_integer)) {
+    uint32_t narrowed = (uint32_t)value->unsigned_integer;
+    memcpy(destination, &narrowed, size);
+  } else if ((type == FLAGS_TYPE_DOUBLE || type == FLAGS_TYPE_PERCENT || type == FLAGS_TYPE_DECIBEL) && size == sizeof(float)) {
+    float narrowed = (float)value->number;
+    memcpy(destination, &narrowed, sizeof(narrowed));
+  } else {
+    memcpy(destination, value, size);
+  }
+}
+
+static void flags_load_value(flags_value_t *value, const void *source, size_t size, flags_value_type_t type) {
+  memset(value, 0, sizeof(*value));
+  if (type == FLAGS_TYPE_INT64 && size < sizeof(value->integer)) {
+    int32_t narrowed = 0;
+    memcpy(&narrowed, source, size);
+    value->integer = narrowed;
+  } else if (type == FLAGS_TYPE_UINT64 && size < sizeof(value->unsigned_integer)) {
+    uint32_t narrowed = 0;
+    memcpy(&narrowed, source, size);
+    value->unsigned_integer = narrowed;
+  } else if ((type == FLAGS_TYPE_DOUBLE || type == FLAGS_TYPE_PERCENT || type == FLAGS_TYPE_DECIBEL) && size == sizeof(float)) {
+    float narrowed = 0.0f;
+    memcpy(&narrowed, source, sizeof(narrowed));
+    value->number = narrowed;
+  } else {
+    memcpy(value, source, size < sizeof(*value) ? size : sizeof(*value));
+  }
 }
 
 flags_context_t *flags_create(const flags_schema_t *schema, void *storage, size_t storage_size) {
@@ -222,7 +258,7 @@ bool flags_set(flags_context_t *context, const char *name, const flags_value_t *
     memcpy(destination, text, length);
     ((char *)destination)[length] = '\0';
   } else {
-    memcpy(destination, value, option->storage_size);
+    flags_store_value(destination, option->storage_size, option->type, value);
   }
   context->stats[index].explicitly_set = source != FLAGS_SOURCE_DEFAULT;
   context->stats[index].changed_from_default = source != FLAGS_SOURCE_DEFAULT;
@@ -249,7 +285,7 @@ bool flags_get(const flags_context_t *context, const char *name, flags_value_t *
   if (option->type == FLAGS_TYPE_STRING && !option->dynamic_string)
     out->string = source;
   else
-    memcpy(out, source, option->storage_size < sizeof(*out) ? option->storage_size : sizeof(*out));
+    flags_load_value(out, source, option->storage_size, option->type);
   ++((flags_context_t *)context)->stats[index].read_count;
   flags_now(&((flags_context_t *)context)->stats[index].last_read);
   mutex_unlock(&((flags_context_t *)context)->mutex);

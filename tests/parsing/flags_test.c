@@ -26,6 +26,11 @@ typedef struct {
   flags_percent_t coverage;
 } semantic_values_t;
 
+typedef struct {
+  int value;
+  float ratio;
+} narrow_values_t;
+
 static bool count_positional(flags_context_t *context, const char *text, void *user_data) {
   (void)context;
   (void)text;
@@ -73,6 +78,16 @@ int main(void) {
   assert(integer_context && flags_set_text(integer_context, "integer", "9223372036854770000", FLAGS_SOURCE_COMMAND_LINE));
   assert(large_integer == INT64_C(9223372036854770000));
   flags_destroy(integer_context);
+  narrow_values_t narrow_values = {0};
+  const flags_option_spec_t narrow_options[] = {
+      {.name = "value", .type = FLAGS_TYPE_INT64, .storage_offset = offsetof(narrow_values_t, value), .storage_size = sizeof narrow_values.value},
+      {.name = "ratio", .type = FLAGS_TYPE_DOUBLE, .storage_offset = offsetof(narrow_values_t, ratio), .storage_size = sizeof narrow_values.ratio}};
+  const flags_schema_t narrow_schema = {.options = narrow_options, .option_count = 2};
+  flags_context_t *narrow_context = flags_create(&narrow_schema, &narrow_values, sizeof narrow_values);
+  assert(narrow_context && flags_set_text(narrow_context, "value", "123456", FLAGS_SOURCE_CONFIG));
+  assert(flags_set_text(narrow_context, "ratio", "1.25", FLAGS_SOURCE_CONFIG));
+  assert(narrow_values.value == 123456 && narrow_values.ratio == 1.25f);
+  flags_destroy(narrow_context);
   values_t v = {0};
   static const char *const verbose_aliases[] = {"debug"};
   static const flags_option_spec_t o[] = {{.name = "verbose",
