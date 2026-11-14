@@ -9,7 +9,9 @@ set(LIBFLAGS_SOURCES
   config/config.c
   completions/completions.c
   manpage/manpage.c
-  manpage/formatter.c)
+  manpage/formatter.c
+  manpage/parser.c
+)
 
 add_library(flags ${LIBFLAGS_SOURCES})
 add_library(libflags::flags ALIAS flags)
