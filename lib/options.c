@@ -733,7 +733,16 @@ bool flags_runtime_apply_batch(flags_context_t *context, const flags_update_t *u
       }
     }
   }
-  if (mutex_lock(&context->mutex) != 0 || context->revision != expected_revision) {
+  if (mutex_lock(&context->mutex) != 0) {
+    for (size_t i = 0; i < update_count; ++i)
+      free(owned_strings[i]);
+    free(options);
+    free(old_values);
+    free(owned_strings);
+    return false;
+  }
+  if (context->revision != expected_revision) {
+    mutex_unlock(&context->mutex);
     for (size_t i = 0; i < update_count; ++i)
       free(owned_strings[i]);
     free(options);
