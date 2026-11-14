@@ -1,7 +1,39 @@
 #include <libflags/manpage/manpage.h>
+#include <libflags/manpage/formatter.h>
 
 #include <stdio.h>
 #include <string.h>
+
+static const char *flags_manpage_type_placeholder(const flags_option_spec_t *option) {
+  if (option->metavar)
+    return option->metavar;
+  switch (option->type) {
+  case FLAGS_TYPE_BOOL:
+    return NULL;
+  case FLAGS_TYPE_INT64:
+  case FLAGS_TYPE_UINT64:
+  case FLAGS_TYPE_PORT:
+    return "INTEGER";
+  case FLAGS_TYPE_DOUBLE:
+    return "NUMBER";
+  default:
+    return "VALUE";
+  }
+}
+
+static void flags_manpage_write_option(const flags_option_spec_t *option, FILE *output) {
+  fprintf(output, ".TP\n.B \\-\\-%s", option->name);
+  if (option->short_name)
+    fprintf(output, " (\\-%c)", option->short_name);
+  const char *placeholder = flags_manpage_type_placeholder(option);
+  if (placeholder)
+    fprintf(output, " \\fI%s\\fR", flags_manpage_escape_groff(placeholder));
+  fputc('\n', output);
+  fprintf(output, "%s", flags_manpage_escape_groff(option->description ? option->description : "Option value."));
+  if (option->required)
+    fputs(" [required]", output);
+  fputc('\n', output);
+}
 
 bool flags_manpage_write(const flags_schema_t *schema, const flags_manpage_metadata_t *metadata, FILE *output) {
   if (!schema || !metadata || !metadata->program_name || !output)
@@ -12,7 +44,7 @@ bool flags_manpage_write(const flags_schema_t *schema, const flags_manpage_metad
   fprintf(output, ".SH OPTIONS\n");
   for (size_t i = 0; i < schema->option_count; ++i) {
     const flags_option_spec_t *option = &schema->options[i];
-    fprintf(output, ".TP\n.B \\-\\-%s\n%s\n", option->name, option->secret ? "Sensitive value." : (option->description ? option->description : "Option value."));
+    flags_manpage_write_option(option, output);
   }
   return !ferror(output);
 }
@@ -28,7 +60,10 @@ bool flags_manpage_write_environment(const flags_schema_t *schema, const char *p
       name = derived;
     if (!name)
       continue;
-    fprintf(output, ".TP\n.B %s\n%s\n", name, option->description ? option->description : "Option value.");
+    fprintf(output, ".TP\n.B %s\n%s\n", name, option->secret ? "Sensitive value." : (option->description ? option->description : "Option value."));
+    for (size_t alias = 0; alias < option->environment_alias_count; ++alias)
+      if (option->environment_aliases[alias])
+        fprintf(output, ".br\n.B %s\n", option->environment_aliases[alias]);
   }
   return !ferror(output);
 }
