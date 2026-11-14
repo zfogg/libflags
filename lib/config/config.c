@@ -39,6 +39,25 @@ static bool flags_config_write_string(FILE *output, const char *name, const char
 }
 
 static bool flags_config_apply_datum(flags_context_t *context, const flags_option_spec_t *option, toml_datum_t datum) {
+  if (option->type == FLAGS_TYPE_CUSTOM) {
+    char text[128];
+    switch (datum.type) {
+    case TOML_STRING:
+      return flags_was_explicitly_set(context, option->name) || flags_set_text(context, option->name, datum.u.s, FLAGS_SOURCE_CONFIG);
+    case TOML_INT64:
+      snprintf(text, sizeof(text), "%lld", (long long)datum.u.int64);
+      break;
+    case TOML_FP64:
+      snprintf(text, sizeof(text), "%.17g", datum.u.fp64);
+      break;
+    case TOML_BOOLEAN:
+      snprintf(text, sizeof(text), "%s", datum.u.boolean ? "true" : "false");
+      break;
+    default:
+      return false;
+    }
+    return flags_was_explicitly_set(context, option->name) || flags_set_text(context, option->name, text, FLAGS_SOURCE_CONFIG);
+  }
   flags_value_t value = {0};
   switch (datum.type) {
   case TOML_STRING:
