@@ -58,7 +58,7 @@ bool flags_command_add_option(flags_command_t *command, const flags_option_spec_
  * @param user_data Opaque callback data.
  * @return Whether configuration succeeded.
  */
-bool flags_command_set_handler(flags_command_t *command, int (*handler)(flags_context_t *, void *), void *user_data);
+bool flags_command_set_handler(flags_command_t *command, int (*handler)(flags_context_t *context, void *user_data), void *user_data);
 /**
  * @brief Marks a descendant as the root's default command.
  * @param root Root command.
