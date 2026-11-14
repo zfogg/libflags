@@ -161,7 +161,7 @@ void flags_destroy_preserving_storage(flags_context_t *context) {
   flags_destroy(context);
 }
 
-bool flags_validate(const flags_context_t *context) {
+static bool flags_validate_storage(const flags_context_t *context) {
   if (!context || !context->schema)
     return false;
   for (size_t i = 0; i < context->schema->option_count; ++i) {
@@ -169,6 +169,12 @@ bool flags_validate(const flags_context_t *context) {
     if (option->storage_offset > context->storage_size || option->storage_size > context->storage_size - option->storage_offset || option->storage_size < flags_type_min_size(option))
       return false;
   }
+  return true;
+}
+
+bool flags_validate(const flags_context_t *context) {
+  if (!flags_validate_storage(context))
+    return false;
   for (size_t i = 0; i < context->schema->dependency_count; ++i) {
     const flags_dependency_t *dependency = &context->schema->dependencies[i];
     bool active = flags_was_explicitly_set(context, dependency->option_name);
@@ -183,7 +189,7 @@ bool flags_validate(const flags_context_t *context) {
 }
 
 bool flags_set_defaults(flags_context_t *context) {
-  if (!flags_validate(context))
+  if (!flags_validate_storage(context))
     return false;
   for (size_t i = 0; i < context->schema->option_count; ++i) {
     const flags_option_spec_t *option = &context->schema->options[i];
@@ -225,7 +231,7 @@ bool flags_classify_stream(const flags_option_spec_t *option, const char *text, 
 }
 
 bool flags_set(flags_context_t *context, const char *name, const flags_value_t *value, flags_source_t source) {
-  if (!context || !name || !value || !flags_validate(context))
+  if (!context || !name || !value || !flags_validate_storage(context))
     return false;
   size_t index = flags_find(context->schema, name);
   if (index == SIZE_MAX)
@@ -672,7 +678,7 @@ uint64_t flags_runtime_revision(const flags_context_t *context) {
 }
 
 bool flags_runtime_apply_batch(flags_context_t *context, const flags_update_t *updates, size_t update_count, uint64_t expected_revision, flags_source_t source, uint64_t *new_revision) {
-  if (!context || (!updates && update_count != 0) || !flags_validate(context))
+  if (!context || (!updates && update_count != 0) || !flags_validate_storage(context))
     return false;
   const flags_option_spec_t **options = calloc(update_count, sizeof(*options));
   flags_value_t *old_values = calloc(update_count, sizeof(*old_values));
