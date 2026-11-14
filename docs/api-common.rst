@@ -17,7 +17,7 @@ Semantic parsers and validation
 .. c:autodoc:: libflags/values.h libflags/parsers.h
 
 Runtime values and live updates
-------------------------------
+-------------------------------
 
 .. c:autodoc:: libflags/runtime.h
 
