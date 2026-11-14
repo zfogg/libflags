@@ -23,13 +23,16 @@ typedef enum flags_patch_status {
 
 /** Summary returned by flags_apply_json(). */
 typedef struct flags_patch_result {
+  /** Final status of the patch operation. */
   flags_patch_status_t status;
+  /** Context revision after the operation. */
   uint64_t revision;
+  /** Number of changed options. */
   size_t changed_count;
 } flags_patch_result_t;
 
 /**
- * Applies a JSON object as one typed, revision-checked update batch.
+ * @brief Applies a JSON object as one typed, revision-checked update batch.
  *
  * The update is atomic: invalid input or a stale expected revision leaves the
  * context unchanged. Pass the revision returned by a previous snapshot, or
@@ -37,7 +40,7 @@ typedef struct flags_patch_result {
  *
  * @param context Context whose bound storage will be updated.
  * @param json UTF-8 JSON object containing canonical option names.
- * @param json_size Number of bytes in @p json.
+ * @param length Number of bytes in @p json.
  * @param expected_revision Required context revision.
  * @param source Provenance recorded for each successful assignment.
  * @param result Optional result summary.
@@ -46,11 +49,17 @@ typedef struct flags_patch_result {
 bool flags_apply_json(flags_context_t *context, const char *json, size_t length, uint64_t expected_revision, flags_source_t source, flags_patch_result_t *result);
 
 /**
- * Serializes the current typed values into a caller-owned JSON string.
- *
- * The returned string must be released with flags_free_json().
+ * @brief Serializes the current typed values into a caller-owned JSON string.
+ * @param context Context to serialize.
+ * @param out_json Destination allocated JSON string.
+ * @param out_revision Optional destination revision.
+ * @return Whether serialization succeeded.
+ * @note Release the returned string with flags_free_json().
  */
 bool flags_snapshot_json(const flags_context_t *context, char **out_json, uint64_t *out_revision);
 
-/** Frees a string returned by flags_snapshot_json(). */
+/**
+ * @brief Frees a string returned by flags_snapshot_json().
+ * @param json JSON string to release.
+ */
 void flags_free_json(char *json);

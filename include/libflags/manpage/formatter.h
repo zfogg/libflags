@@ -11,7 +11,8 @@
  * @return Borrowed escaped text, or an empty string.
  */
 const char *flags_manpage_escape_groff(const char *text);
-/** @brief Writes a groff section header.
+/**
+ * @brief Writes a groff section header.
  * @param output Destination stream.
  * @param section_name Section name.
  */
@@ -44,7 +45,8 @@ void flags_manpage_write_tagged_paragraph(FILE *output);
  * @param text Text to write.
  */
 void flags_manpage_write_text(FILE *output, const char *text);
-/** @brief Writes a standard user-command title block.
+/**
+ * @brief Writes a standard user-command title block.
  * @param output Destination stream.
  * @param program_name Program name.
  * @param mode_name Mode or section name.

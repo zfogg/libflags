@@ -14,10 +14,9 @@ Schemas and option values
 Semantic parsers and validation
 -------------------------------
 
-.. c:autodoc:: libflags/values.h libflags/parsers.h libflags/validation.h libflags/util/ip.h libflags/util/url.h
+.. c:autodoc:: libflags/values.h libflags/parsers.h
 
-Runtime values and live updates
-------------------------------
+Runtime values and live updates`r`n----------------------------------
 
 .. c:autodoc:: libflags/runtime.h
 

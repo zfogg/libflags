@@ -232,11 +232,34 @@ typedef union flags_value {
 /** An opaque, independently usable parser instance. */
 typedef struct flags_context flags_context_t;
 
-/** Parses a textual value into its typed representation. */
+/**
+ * @brief Parses a textual value into its typed representation.
+ * @param context Context receiving parser state.
+ * @param text Text to parse.
+ * @param value Destination typed value.
+ * @param user_data Callback-owned data.
+ * @return Whether parsing succeeded.
+ */
 typedef bool (*flags_parse_callback_t)(flags_context_t *context, const char *text, flags_value_t *value, void *user_data);
-/** Validates a typed value before it is stored. */
+/**
+ * @brief Validates a typed value before it is stored.
+ * @param context Context being updated.
+ * @param text Original input text.
+ * @param value Parsed value.
+ * @param error Error buffer.
+ * @param error_size Error buffer capacity.
+ * @param user_data Callback-owned data.
+ * @return Whether the value is valid.
+ */
 typedef bool (*flags_validate_callback_t)(const flags_context_t *context, const char *text, const flags_value_t *value, char *error, size_t error_size, void *user_data);
-/** Observes a successful value change after storage is updated. */
+/**
+ * @brief Observes a successful value change after storage is updated.
+ * @param context Context that changed.
+ * @param name Canonical option name.
+ * @param old_value Previous value.
+ * @param new_value New value.
+ * @param user_data Callback-owned data.
+ */
 typedef void (*flags_change_callback_t)(flags_context_t *context, const char *name, const flags_value_t *old_value, const flags_value_t *new_value, void *user_data);
 
 /** A diagnostic event delivered to the instance logging hook. */
@@ -257,7 +280,11 @@ typedef struct flags_log_event {
   uint64_t revision;
 } flags_log_event_t;
 
-/** Receives diagnostic events from one context. */
+/**
+ * @brief Receives diagnostic events from one context.
+ * @param event Borrowed diagnostic event.
+ * @param user_data Callback-owned data.
+ */
 typedef void (*flags_log_callback_t)(const flags_log_event_t *event, void *user_data);
 
 /** Configures optional per-context diagnostics. */
@@ -306,7 +333,13 @@ typedef struct flags_parse_result {
   int first_positional_index;
 } flags_parse_result_t;
 
-/** Parse one positional value into application-owned state. */
+/**
+ * @brief Parses one positional value into application-owned state.
+ * @param context Context being updated.
+ * @param text Positional text.
+ * @param user_data Callback-owned data.
+ * @return Whether parsing succeeded.
+ */
 typedef bool (*flags_parse_positional_callback_t)(flags_context_t *context, const char *text, void *user_data);
 
 /** Describes one positional argument family. */
@@ -459,55 +492,213 @@ bool flags_split_arguments(int argc, char **argv, flags_parse_result_t *result);
  * @return Whether the context is valid.
  */
 bool flags_validate(const flags_context_t *context);
-/** Copies one option value into caller-provided storage. */
+/**
+ * @brief Copies one option value into caller-provided storage.
+ * @param context Context to inspect.
+ * @param name Canonical option name.
+ * @param value Destination value.
+ * @return Whether the option was found and copied.
+ */
 bool flags_get(const flags_context_t *context, const char *name, flags_value_t *value);
-/** Validates and assigns one option value. */
+/**
+ * @brief Validates and assigns one option value.
+ * @param context Context to update.
+ * @param name Canonical option name.
+ * @param value Value to assign.
+ * @param source Assignment provenance.
+ * @return Whether assignment succeeded.
+ */
 bool flags_set(flags_context_t *context, const char *name, const flags_value_t *value, flags_source_t source);
-/** Parses and assigns one textual option value through the descriptor parser. */
+/**
+ * @brief Parses and assigns one textual option value.
+ * @param context Context to update.
+ * @param name Canonical option name.
+ * @param text Textual value.
+ * @param source Assignment provenance.
+ * @return Whether assignment succeeded.
+ */
 bool flags_set_text(flags_context_t *context, const char *name, const char *text, flags_source_t source);
-/** Parses one textual option value without changing context storage. */
+/**
+ * @brief Parses one textual option value without changing context storage.
+ * @param context Context providing the descriptor.
+ * @param name Canonical option name.
+ * @param text Textual value.
+ * @param value Destination value.
+ * @return Whether parsing succeeded.
+ */
 bool flags_parse_text(const flags_context_t *context, const char *name, const char *text, flags_value_t *value);
-/** Frees a string returned by flags_get_string. */
+/**
+ * @brief Frees a string returned by flags_get_string.
+ * @param value String returned by the library.
+ */
 void flags_free_string(char *value);
-/** Retrieves a duplicated string value. */
+/**
+ * @brief Retrieves a duplicated string value.
+ * @param context Context to inspect.
+ * @param name Canonical option name.
+ * @param value Destination string pointer.
+ * @return Whether the option was found and duplicated.
+ * @note Release the returned string with flags_free_string().
+ */
 bool flags_get_string(const flags_context_t *context, const char *name, char **value);
-/** Classifies a string according to an option's dash metadata. */
+/**
+ * @brief Classifies a string according to an option's dash metadata.
+ * @param option Option descriptor.
+ * @param text Text to classify.
+ * @param stream Destination classification.
+ * @return Whether classification succeeded.
+ */
 bool flags_classify_stream(const flags_option_spec_t *option, const char *text, flags_stream_value_t *stream);
-/** Reports whether an option was explicitly assigned. */
+/**
+ * @brief Reports whether an option was explicitly assigned.
+ * @param context Context to inspect.
+ * @param name Canonical option name.
+ * @return Whether the option has an explicit assignment.
+ */
 bool flags_was_explicitly_set(const flags_context_t *context, const char *name);
-/** Returns the number of successful assignments to an option. */
+/**
+ * @brief Returns the number of successful assignments to an option.
+ * @param context Context to inspect.
+ * @param name Canonical option name.
+ * @return Assignment count, or zero for an unknown option.
+ */
 uint64_t flags_change_count(const flags_context_t *context, const char *name);
-/** Reports whether the current value differs from its default. */
+/**
+ * @brief Reports whether the current value differs from its default.
+ * @param context Context to inspect.
+ * @param name Canonical option name.
+ * @return Whether the value differs from its default.
+ */
 bool flags_changed_from_default(const flags_context_t *context, const char *name);
-/** Returns successful read count. */
+/**
+ * @brief Returns the successful read count.
+ * @param context Context to inspect.
+ * @param name Canonical option name.
+ * @return Read count, or zero for an unknown option.
+ */
 uint64_t flags_read_count(const flags_context_t *context, const char *name);
-/** Returns assignment-attempt count. */
+/**
+ * @brief Returns the assignment-attempt count.
+ * @param context Context to inspect.
+ * @param name Canonical option name.
+ * @return Write count, or zero for an unknown option.
+ */
 uint64_t flags_write_count(const flags_context_t *context, const char *name);
-/** Copies the last-change timestamp. */
+/**
+ * @brief Copies the last-change timestamp.
+ * @param context Context to inspect.
+ * @param name Canonical option name.
+ * @param timestamp Destination timestamp.
+ * @return Whether a timestamp exists for the option.
+ */
 bool flags_last_changed_at(const flags_context_t *context, const char *name, struct timespec *timestamp);
-/** Copies the last-read timestamp. */
+/**
+ * @brief Copies the last-read timestamp.
+ * @param context Context to inspect.
+ * @param name Canonical option name.
+ * @param timestamp Destination timestamp.
+ * @return Whether a timestamp exists for the option.
+ */
 bool flags_last_read_at(const flags_context_t *context, const char *name, struct timespec *timestamp);
-/** Returns elapsed nanoseconds since the last change. */
+/**
+ * @brief Returns elapsed nanoseconds since the last change.
+ * @param context Context to inspect.
+ * @param name Canonical option name.
+ * @param nanoseconds Destination elapsed time.
+ * @return Whether the option has a recorded change.
+ */
 bool flags_time_since_change(const flags_context_t *context, const char *name, uint64_t *nanoseconds);
-/** Installs or clears the context logging hook. */
+/**
+ * @brief Installs or clears the context logging hook.
+ * @param context Context to configure.
+ * @param config Logging configuration, or NULL to clear it.
+ * @return Whether the configuration was accepted.
+ */
 bool flags_set_logging(flags_context_t *context, const flags_logging_config_t *config);
-/** Emits a formatted diagnostic event when logging is enabled. */
+/**
+ * @brief Emits a formatted diagnostic event when logging is enabled.
+ * @param context Context emitting the event.
+ * @param level Event severity.
+ * @param category Event category.
+ * @param option_name Related option, or NULL.
+ * @param format printf-style format string.
+ * @note Additional arguments must match @p format.
+ */
 void flags_log(flags_context_t *context, flags_log_level_t level, flags_log_category_t category, const char *option_name, const char *format, ...);
-/** Emits a value diagnostic, replacing secret values with a redaction marker. */
+/**
+ * @brief Emits a value diagnostic, replacing secret values with a redaction marker.
+ * @param context Context emitting the event.
+ * @param level Event severity.
+ * @param category Event category.
+ * @param option_name Related option, or NULL.
+ * @param value Value to report.
+ */
 void flags_log_value(flags_context_t *context, flags_log_level_t level, flags_log_category_t category, const char *option_name, const char *value);
-/** Installs per-context automatic environment-variable configuration. */
+/**
+ * @brief Installs per-context automatic environment-variable configuration.
+ * @param context Context to configure.
+ * @param config Environment configuration, or NULL to clear it.
+ * @return Whether configuration succeeded.
+ */
 bool flags_set_environment_config(flags_context_t *context, const flags_environment_config_t *config);
-/** Returns the derived or explicit environment name for an option. */
+/**
+ * @brief Returns the derived or explicit environment name for an option.
+ * @param context Context containing the option.
+ * @param option_name Canonical option name.
+ * @param buffer Destination buffer.
+ * @param buffer_size Destination capacity.
+ * @return Whether the name fit in the buffer.
+ */
 bool flags_environment_name(const flags_context_t *context, const char *option_name, char *buffer, size_t buffer_size);
-/** Derives an environment name from a prefix and canonical option name. */
+/**
+ * @brief Derives an environment name from a prefix and canonical option name.
+ * @param prefix Configured prefix, or NULL.
+ * @param option_name Canonical option name.
+ * @param buffer Destination buffer.
+ * @param buffer_size Destination capacity.
+ * @return Whether the name fit in the buffer.
+ */
 bool flags_derive_environment_name(const char *prefix, const char *option_name, char *buffer, size_t buffer_size);
-/** Applies present environment variables using environment precedence. */
-bool flags_apply_environment(flags_context_t *);
-/** Reads one value and returns the context revision observed with it. */
+/**
+ * @brief Applies present environment variables using environment precedence.
+ * @param context Context to update.
+ * @return Whether all present variables were applied successfully.
+ */
+bool flags_apply_environment(flags_context_t *context);
+/**
+ * @brief Reads one value and returns the observed context revision.
+ * @param context Context to inspect.
+ * @param name Canonical option name.
+ * @param value Destination value.
+ * @param revision Destination revision.
+ * @return Whether the option was found.
+ */
 bool flags_runtime_read(const flags_context_t *context, const char *name, flags_value_t *value, uint64_t *revision);
-/** Applies one value if the expected revision still matches. */
+/**
+ * @brief Applies one value if the expected revision still matches.
+ * @param context Context to update.
+ * @param name Canonical option name.
+ * @param value Value to assign.
+ * @param expected_revision Required current revision.
+ * @param source Assignment provenance.
+ * @param revision Destination resulting revision.
+ * @return Whether the update was committed.
+ */
 bool flags_runtime_apply(flags_context_t *context, const char *name, const flags_value_t *value, uint64_t expected_revision, flags_source_t source, uint64_t *revision);
-/** Returns the current context revision. */
+/**
+ * @brief Returns the current context revision.
+ * @param context Context to inspect.
+ * @return Current revision, or zero for NULL.
+ */
 uint64_t flags_runtime_revision(const flags_context_t *context);
-/** Applies an all-or-nothing batch at one expected revision. */
+/**
+ * @brief Applies an all-or-nothing batch at one expected revision.
+ * @param context Context to update.
+ * @param updates Update descriptors.
+ * @param update_count Number of descriptors.
+ * @param expected_revision Required current revision.
+ * @param source Assignment provenance.
+ * @param revision Destination resulting revision.
+ * @return Whether every update was committed.
+ */
 bool flags_runtime_apply_batch(flags_context_t *context, const flags_update_t *updates, size_t update_count, uint64_t expected_revision, flags_source_t source, uint64_t *revision);
