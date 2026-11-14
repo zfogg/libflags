@@ -8,7 +8,9 @@
 #include <stdint.h>
 #include <libflags/flags.h>
 
-/** An owned list of string values parsed from comma-separated text. */
+/**
+ * @brief Owned list of string values parsed from comma-separated text.
+ */
 typedef struct flags_string_list {
   /** Allocated item strings. */
   char **items;
@@ -16,7 +18,9 @@ typedef struct flags_string_list {
   size_t count;
 } flags_string_list_t;
 
-/** An owned list of signed integer values parsed from comma-separated text. */
+/**
+ * @brief Owned list of signed integer values parsed from comma-separated text.
+ */
 typedef struct flags_int_list {
   /** Allocated integer values. */
   int64_t *items;

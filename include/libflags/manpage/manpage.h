@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <libflags/flags.h>
 
+/**
+ * @brief Metadata used by flags_manpage_write().
+ */
 typedef struct flags_manpage_metadata {
   /** Name shown in the generated title. */
   const char *program_name;

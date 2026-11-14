@@ -5,7 +5,9 @@
 #include <stdio.h>
 #include <libflags/flags.h>
 
-/** @brief Shell dialect understood by flags_completion_write(). */
+/**
+ * @brief Shell dialect understood by flags_completion_write().
+ */
 typedef enum flags_completion_shell {
   /** Bash completion function syntax. */
   FLAGS_COMPLETION_BASH,

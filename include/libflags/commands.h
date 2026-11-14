@@ -8,10 +8,14 @@
 
 #include <libflags/flags.h>
 
-/** An opaque command node in a schema tree. */
+/**
+ * @brief Opaque command node in a schema tree.
+ */
 typedef struct flags_command flags_command_t;
 
-/** Result of resolving a root command and its command-line boundary. */
+/**
+ * @brief Result of resolving a root command and its command-line boundary.
+ */
 typedef struct flags_command_resolution {
   /** Selected command. */
   flags_command_t *command;

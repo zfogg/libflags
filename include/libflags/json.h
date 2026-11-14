@@ -9,7 +9,9 @@
 #pragma once
 #include <libflags/flags.h>
 
-/** Result of applying one JSON patch document. */
+/**
+ * @brief Result of applying one JSON patch document.
+ */
 typedef enum flags_patch_status {
   /** The patch was applied. */
   FLAGS_PATCH_APPLIED,
@@ -21,7 +23,9 @@ typedef enum flags_patch_status {
   FLAGS_PATCH_INVALID
 } flags_patch_status_t;
 
-/** Summary returned by flags_apply_json(). */
+/**
+ * @brief Summary returned by flags_apply_json().
+ */
 typedef struct flags_patch_result {
   /** Final status of the patch operation. */
   flags_patch_status_t status;

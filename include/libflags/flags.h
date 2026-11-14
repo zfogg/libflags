@@ -12,7 +12,9 @@
 #include <stdint.h>
 #include <time.h>
 
-/** A storage type understood by libflags. */
+/**
+ * @brief Storage types understood by libflags.
+ */
 typedef enum flags_value_type {
   /** A boolean value. */
   FLAGS_TYPE_BOOL,
@@ -70,7 +72,9 @@ typedef enum flags_value_type {
   FLAGS_TYPE_CUSTOM
 } flags_value_type_t;
 
-/** The operation applied when a flag is repeated. */
+/**
+ * @brief Operations applied when a flag is repeated.
+ */
 typedef enum flags_operation {
   /** Replace the current value. */
   FLAGS_VALUE_ASSIGN,
@@ -86,7 +90,9 @@ typedef enum flags_operation {
   FLAGS_VALUE_CYCLE
 } flags_operation_t;
 
-/** The behavior of a flag independent of its value type. */
+/**
+ * @brief Behavior of a flag independent of its value type.
+ */
 typedef enum flags_option_behavior {
   /** Parse and store a value. */
   FLAGS_BEHAVIOR_VALUE,
@@ -96,7 +102,9 @@ typedef enum flags_option_behavior {
   FLAGS_BEHAVIOR_CALLBACK
 } flags_option_behavior_t;
 
-/** Whether a flag consumes a following command-line value. */
+/**
+ * @brief Whether a flag consumes a following command-line value.
+ */
 typedef enum flags_argument_requirement {
   /** The flag has no value. */
   FLAGS_ARGUMENT_NONE,
@@ -106,7 +114,9 @@ typedef enum flags_argument_requirement {
   FLAGS_ARGUMENT_OPTIONAL
 } flags_argument_requirement_t;
 
-/** The meaning of a single hyphen for a file-valued option. */
+/**
+ * @brief Meanings of a single hyphen for a file-valued option.
+ */
 typedef enum flags_dash_behavior {
   /** Reject `-`. */
   FLAGS_DASH_NOT_ALLOWED,
@@ -120,7 +130,9 @@ typedef enum flags_dash_behavior {
   FLAGS_DASH_STDIN_OR_STDOUT
 } flags_dash_behavior_t;
 
-/** The normalized stream classification of a string value. */
+/**
+ * @brief Normalized stream classifications for string values.
+ */
 typedef enum flags_stream_kind {
   /** No stream classification. */
   FLAGS_STREAM_NONE,
@@ -132,7 +144,9 @@ typedef enum flags_stream_kind {
   FLAGS_STREAM_STDOUT
 } flags_stream_kind_t;
 
-/** The number of values accepted by a positional descriptor. */
+/**
+ * @brief Numbers of values accepted by a positional descriptor.
+ */
 typedef enum flags_positional_arity {
   /** Zero or one value. */
   FLAGS_POSITIONAL_OPTIONAL,
@@ -144,7 +158,9 @@ typedef enum flags_positional_arity {
   FLAGS_POSITIONAL_ONE_OR_MORE
 } flags_positional_arity_t;
 
-/** Policy for ordinary positional values encountered before `--`. */
+/**
+ * @brief Policies for positional values encountered before `--`.
+ */
 typedef enum flags_argument_order {
   /** Continue scanning for options. */
   FLAGS_POSITIONAL_PERMUTE,
@@ -154,7 +170,9 @@ typedef enum flags_argument_order {
   FLAGS_POSITIONAL_ONLY_AFTER_TERMINATOR
 } flags_argument_order_t;
 
-/** The source used when assigning an option. */
+/**
+ * @brief Sources recorded when assigning an option.
+ */
 typedef enum flags_source {
   /** A schema default. */
   FLAGS_SOURCE_DEFAULT,
@@ -170,7 +188,9 @@ typedef enum flags_source {
   FLAGS_SOURCE_CALLBACK
 } flags_source_t;
 
-/** A numeric value that can preserve an explicit `auto` spelling. */
+/**
+ * @brief Numeric value that can preserve an explicit `auto` spelling.
+ */
 typedef struct flags_semantic_number {
   double value;
   bool automatic;
@@ -179,7 +199,9 @@ typedef struct flags_semantic_number {
 typedef flags_semantic_number_t flags_decibel_t;
 typedef flags_semantic_number_t flags_percent_t;
 
-/** A typed value passed to or copied from the library. */
+/**
+ * @brief Typed value passed to or copied from the library.
+ */
 typedef union flags_value {
   /** Boolean representation. */
   bool boolean;
@@ -197,7 +219,9 @@ typedef union flags_value {
   flags_percent_t percent;
 } flags_value_t;
 
-/** An opaque, independently usable parser instance. */
+/**
+ * @brief Opaque, independently usable parser instance.
+ */
 typedef struct flags_context flags_context_t;
 
 /**
@@ -230,7 +254,10 @@ typedef bool (*flags_validate_callback_t)(const flags_context_t *context, const 
  */
 typedef void (*flags_change_callback_t)(flags_context_t *context, const char *name, const flags_value_t *old_value, const flags_value_t *new_value, void *user_data);
 
-/** A diagnostic event delivered to the instance logging hook. */
+/**
+ * @brief Diagnostic event delivered to the instance logging hook.
+ * @note The consumer owns severity, filtering, formatting, and routing.
+ */
 typedef struct flags_log_event {
   /** Borrowed event text valid during callback. */
   const char *message;
@@ -251,7 +278,9 @@ typedef struct flags_log_event {
  */
 typedef void (*flags_log_callback_t)(const flags_log_event_t *event, void *user_data);
 
-/** Configures optional per-context diagnostics. */
+/**
+ * @brief Configures an optional per-context diagnostic callback.
+ */
 typedef struct flags_logging_config {
   /** Callback, or NULL to disable logging. */
   flags_log_callback_t callback;
@@ -259,7 +288,9 @@ typedef struct flags_logging_config {
   void *user_data;
 } flags_logging_config_t;
 
-/** One named value in an atomic runtime update batch. */
+/**
+ * @brief One named value in an atomic runtime update batch.
+ */
 typedef struct flags_update {
   /** Option name. */
   const char *name;
@@ -267,7 +298,9 @@ typedef struct flags_update {
   flags_value_t value;
 } flags_update_t;
 
-/** Configures automatic environment-variable lookup for one context. */
+/**
+ * @brief Configures automatic environment-variable lookup for one context.
+ */
 typedef struct flags_environment_config {
   /** Prefix for derived names, or NULL for none. */
   const char *prefix;
@@ -275,7 +308,9 @@ typedef struct flags_environment_config {
   bool derive_names;
 } flags_environment_config_t;
 
-/** A value and its normalized stream interpretation. */
+/**
+ * @brief Value and normalized stream interpretation.
+ */
 typedef struct flags_stream_value {
   /** The original, borrowed text. */
   const char *text;
@@ -283,7 +318,9 @@ typedef struct flags_stream_value {
   flags_stream_kind_t kind;
 } flags_stream_value_t;
 
-/** Results of parsing the command-line portion of an argument vector. */
+/**
+ * @brief Results of parsing the command-line portion of an argument vector.
+ */
 typedef struct flags_parse_result {
   /** Whether an explicit `--` was consumed. */
   bool options_ended;
@@ -304,7 +341,9 @@ typedef struct flags_parse_result {
  */
 typedef bool (*flags_parse_positional_callback_t)(flags_context_t *context, const char *text, void *user_data);
 
-/** Describes one positional argument family. */
+/**
+ * @brief Describes one positional argument family.
+ */
 typedef struct flags_positional_spec {
   /** Stable descriptor name. */
   const char *name;
@@ -320,7 +359,9 @@ typedef struct flags_positional_spec {
   void *user_data;
 } flags_positional_spec_t;
 
-/** Describes one option and its binding into application storage. */
+/**
+ * @brief Describes one option and its binding into application storage.
+ */
 typedef struct flags_option_spec {
   /** Long name without hyphens. */
   const char *name;
@@ -376,7 +417,9 @@ typedef struct flags_option_spec {
   void *user_data;
 } flags_option_spec_t;
 
-/** Immutable collection of option and positional descriptors. */
+/**
+ * @brief Immutable collection of option and positional descriptors.
+ */
 typedef struct flags_schema {
   /** Option descriptor array. */
   const flags_option_spec_t *options;
