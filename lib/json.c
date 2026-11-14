@@ -148,4 +148,3 @@ bool flags_snapshot_json(const flags_context_t *context, char **out_json, uint64
 void flags_free_json(char *json) {
   free(json);
 }
-

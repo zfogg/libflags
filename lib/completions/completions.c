@@ -42,7 +42,7 @@ bool flags_completion_write(const flags_schema_t *schema, const char *program, f
   } else if (shell == FLAGS_COMPLETION_POWERSHELL) {
     fprintf(output, "Register-ArgumentCompleter -CommandName %s -ScriptBlock {\n", program);
     fprintf(output, "  param($commandName, $wordToComplete, $cursorPosition)\n");
-    fprintf(output, "  @(" );
+    fprintf(output, "  @(");
     for (size_t i = 0; i < schema->option_count; ++i) {
       if (i)
         fputs(", ", output);
