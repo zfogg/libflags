@@ -15,6 +15,17 @@ bool flags_parse_int32(const char *text, int32_t *out) {
   return true;
 }
 
+bool flags_parse_port(const char *text, uint16_t *out) {
+  if (!text || !*text || !out)
+    return false;
+  char *end = NULL;
+  long value = strtol(text, &end, 10);
+  if (end == text || *end != '\0' || value < 0 || value > 65535)
+    return false;
+  *out = (uint16_t)value;
+  return true;
+}
+
 static char *trimmed_duplicate(const char *start, size_t length) {
   while (length && isspace((unsigned char)*start))
     ++start, --length;

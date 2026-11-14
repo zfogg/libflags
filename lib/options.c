@@ -286,8 +286,13 @@ static bool flags_parse_value(flags_context_t *context, const flags_option_spec_
     return flags_parse_bool_relaxed(text, &out->boolean);
   case FLAGS_TYPE_INT64:
   case FLAGS_TYPE_PORT:
-    out->integer = strtoll(text, &end, 10);
-    return end != text && *end == '\0' && (option->type != FLAGS_TYPE_PORT || (out->integer >= 0 && out->integer <= 65535));
+    {
+      uint16_t port = 0;
+      if (!flags_parse_port(text, &port))
+        return false;
+      out->integer = port;
+      return true;
+    }
   case FLAGS_TYPE_DURATION:
     return flags_parse_duration(text, &out->unsigned_integer);
   case FLAGS_TYPE_UINT64:

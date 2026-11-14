@@ -37,6 +37,14 @@ typedef struct flags_int_list {
 bool flags_parse_int32(const char *text, int32_t *value);
 
 /**
+ * @brief Parses a decimal network port.
+ * @param text Input text.
+ * @param port Destination port, in the range 0 through 65535.
+ * @return Whether parsing succeeded.
+ */
+bool flags_parse_port(const char *text, uint16_t *port);
+
+/**
  * @brief Parses true/false, yes/no, on/off, and 1/0 spellings.
  * @param text Input spelling.
  * @param value Destination value.
