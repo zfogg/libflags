@@ -224,25 +224,9 @@ typedef union flags_value {
  */
 typedef struct flags_context flags_context_t;
 
-/**
- * @brief Parses a textual value into its typed representation.
- * @param context Context receiving parser state.
- * @param text Text to parse.
- * @param value Destination typed value.
- * @param user_data Callback-owned data.
- * @return Whether parsing succeeded.
- */
+/** Parses a textual value into its typed representation. */
 typedef bool (*flags_parse_callback_t)(flags_context_t *context, const char *text, flags_value_t *value, void *user_data);
-/**
- * @brief Validates a typed value before it is stored.
- * @param context Context being updated.
- * @param text Original input text.
- * @param value Parsed value.
- * @param error Error buffer.
- * @param error_size Error buffer capacity.
- * @param user_data Callback-owned data.
- * @return Whether the value is valid.
- */
+/** Validates a typed value before it is stored. */
 typedef bool (*flags_validate_callback_t)(const flags_context_t *context, const char *text, const flags_value_t *value, char *error, size_t error_size, void *user_data);
 /**
  * @brief Observes a successful value change after storage is updated.
@@ -332,13 +316,7 @@ typedef struct flags_parse_result {
   int first_positional_index;
 } flags_parse_result_t;
 
-/**
- * @brief Parses one positional value into application-owned state.
- * @param context Context being updated.
- * @param text Positional text.
- * @param user_data Callback-owned data.
- * @return Whether parsing succeeded.
- */
+/** Parses one positional value into application-owned state. */
 typedef bool (*flags_parse_positional_callback_t)(flags_context_t *context, const char *text, void *user_data);
 
 /**
