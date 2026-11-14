@@ -466,6 +466,12 @@ bool flags_parse(flags_context_t *context, int argc, char **argv, flags_parse_re
       flags_value_t value = {.boolean = true};
       if (text && !flags_parse_value(context, option, text, &value))
         return false;
+      if (!text && option->type == FLAGS_TYPE_BOOL && option->default_operation == FLAGS_VALUE_TOGGLE) {
+        flags_value_t current = {0};
+        if (!flags_get(context, option->name, &current))
+          return false;
+        value.boolean = !current.boolean;
+      }
       if (!flags_set(context, option->name, &value, FLAGS_SOURCE_COMMAND_LINE))
         return false;
       continue;
