@@ -4,12 +4,19 @@ Core API
 These headers define schemas, typed values, parsing, validation, runtime
 updates, configuration, JSON adapters, completions, and generic rendering.
 
-Core types and value parsing
-----------------------------
+Core types
+----------
 
-Schemas, typed values, semantic parsers, and validation primitives.
+Typed schemas, contexts, and option descriptors.
 
-.. c:autodoc:: libflags/flags.h libflags/flags_version.h libflags/values.h libflags/parsers.h libflags/validation.h
+.. c:autodoc:: libflags/flags.h libflags/flags_version.h
+
+Semantic value parsing
+----------------------
+
+Common typed-value parsers and validation primitives.
+
+.. c:autodoc:: libflags/values.h libflags/parsers.h libflags/validation.h
 
 Runtime and command APIs
 ------------------------
@@ -17,7 +24,12 @@ Runtime and command APIs
 Context lifecycle, runtime updates, diagnostics, and nested command
 resolution.
 
-.. c:autodoc:: libflags/runtime.h libflags/commands.h
+.. c:autodoc:: libflags/runtime.h
+
+Nested command resolution
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. c:autodoc:: libflags/commands.h
 
 Configuration and serialization
 -------------------------------
@@ -25,7 +37,15 @@ Configuration and serialization
 The configuration and JSON adapters use the same typed schema and precedence
 rules as command-line parsing.
 
-.. c:autodoc:: libflags/config.h libflags/json.h
+TOML configuration
+~~~~~~~~~~~~~~~~~~
+
+.. c:autodoc:: libflags/config.h
+
+JSON integration
+~~~~~~~~~~~~~~~~
+
+.. c:autodoc:: libflags/json.h
 
 Schema builder
 --------------
@@ -47,11 +67,25 @@ Manpage generation
 
 Groff formatting and schema-derived option documentation.
 
-.. c:autodoc:: libflags/manpage/formatter.h libflags/manpage/manpage.h
+Groff formatting primitives
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. c:autodoc:: libflags/manpage/formatter.h
+
+Schema-derived option sections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. c:autodoc:: libflags/manpage/manpage.h
 
 Network utilities
 -----------------
 
-Portable IP address and URL validation helpers.
+IPv4, IPv6, and host/port parsing
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. c:autodoc:: libflags/util/ip.h libflags/util/url.h
+.. c:autodoc:: libflags/util/ip.h
+
+URL validation
+~~~~~~~~~~~~~~
+
+.. c:autodoc:: libflags/util/url.h
