@@ -10,9 +10,12 @@
 #include <libflags/flags.h>
 
 typedef struct flags_manpage_metadata {
-  const char *program_name; /**< Name shown in the generated title. */
-  const char *section;      /**< Man-section identifier, such as 1. */
-  const char *description;  /**< Short program description. */
+  /** Name shown in the generated title. */
+  const char *program_name;
+  /** Man-section identifier, such as 1. */
+  const char *section;
+  /** Short program description. */
+  const char *description;
 } flags_manpage_metadata_t;
 /**
  * Writes a generic option section; application prose remains caller-owned.
@@ -21,4 +24,4 @@ typedef struct flags_manpage_metadata {
  * enum values are emitted from @p schema. Text is escaped for groff before it
  * is written to @p output.
  */
-bool flags_manpage_write(const flags_schema_t *, const flags_manpage_metadata_t *, FILE *);
+bool flags_manpage_write(const flags_schema_t *schema, const flags_manpage_metadata_t *metadata, FILE *output);

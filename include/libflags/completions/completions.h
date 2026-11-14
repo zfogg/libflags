@@ -19,4 +19,4 @@ typedef enum flags_completion_shell {
  * enum choices, and positional metadata available in the schema. The caller
  * supplies the application command name and retains ownership of @p output.
  */
-bool flags_completion_write(const flags_schema_t *, const char *, flags_completion_shell_t, FILE *);
+bool flags_completion_write(const flags_schema_t *schema, const char *command_name, flags_completion_shell_t shell, FILE *output);

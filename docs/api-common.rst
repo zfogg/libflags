@@ -4,7 +4,7 @@ Core API
 These headers define schemas, typed values, parsing, validation, runtime
 updates, configuration, JSON adapters, completions, and generic rendering.
 
-.. c:autodoc:: libflags/flags.h libflags/flags_types.h libflags/flags_schema.h libflags/flags_parser.h libflags/flags_completion.h libflags/flags_manpage.h libflags/flags_version.h libflags/common.h libflags/enums.h libflags/options.h libflags/schema.h libflags/values.h libflags/parsers.h libflags/validation.h libflags/runtime.h libflags/commands.h libflags/config.h libflags/json.h libflags/presets.h libflags/help.h libflags/layout.h libflags/levenshtein.h libflags/log.h
+.. c:autodoc:: libflags/flags.h libflags/flags_types.h libflags/flags_schema.h libflags/flags_parser.h libflags/flags_completion.h libflags/flags_manpage.h libflags/flags_version.h libflags/common.h libflags/enums.h libflags/options.h libflags/schema.h libflags/values.h libflags/parsers.h libflags/validation.h libflags/runtime.h libflags/commands.h libflags/config.h libflags/json.h libflags/presets.h libflags/help.h libflags/layout.h libflags/levenshtein.h
 
 Builder and parsing APIs
 ------------------------
@@ -19,7 +19,7 @@ Configuration and completion APIs
 Manpage APIs
 ------------
 
-.. c:autodoc:: libflags/manpage/formatter.h libflags/manpage/manpage.h libflags/manpage/merger.h libflags/manpage/parser.h libflags/manpage/resources.h libflags/manpage/content/environment.h libflags/manpage/content/examples.h libflags/manpage/content/options.h libflags/manpage/content/positional.h libflags/manpage/content/usage.h
+.. c:autodoc:: libflags/manpage/formatter.h libflags/manpage/manpage.h
 
 Utilities
 ---------
