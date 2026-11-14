@@ -8,6 +8,7 @@ set(LIBFLAGS_SOURCES
   parsing/parsers.c
   builder/builder.c
   config/config.c
+    config/keys.c
   completions/completions.c
   manpage/manpage.c
   manpage/formatter.c
