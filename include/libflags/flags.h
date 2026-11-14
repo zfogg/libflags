@@ -224,9 +224,7 @@ typedef union flags_value {
  */
 typedef struct flags_context flags_context_t;
 
-/** Parses a textual value into its typed representation. */
 typedef bool (*flags_parse_callback_t)(flags_context_t *context, const char *text, flags_value_t *value, void *user_data);
-/** Validates a typed value before it is stored. */
 typedef bool (*flags_validate_callback_t)(const flags_context_t *context, const char *text, const flags_value_t *value, char *error, size_t error_size, void *user_data);
 /**
  * @brief Observes a successful value change after storage is updated.
@@ -316,7 +314,6 @@ typedef struct flags_parse_result {
   int first_positional_index;
 } flags_parse_result_t;
 
-/** Parses one positional value into application-owned state. */
 typedef bool (*flags_parse_positional_callback_t)(flags_context_t *context, const char *text, void *user_data);
 
 /**
