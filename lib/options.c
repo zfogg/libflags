@@ -1,6 +1,6 @@
 #include <libflags/flags.h>
 #include "internal/context.h"
-#include <libflags/validation.h>
+#include "validation.h"
 #include <libflags/values.h>
 #include <libplatform/mutex.h>
 #include <libplatform/system.h>
@@ -184,7 +184,7 @@ bool flags_set(flags_context_t *context, const char *name, const flags_value_t *
   if (index == SIZE_MAX)
     return false;
   const flags_option_spec_t *option = &context->schema->options[index];
-  if (option->validation_regex && (option->type != FLAGS_TYPE_STRING || !value->string || !flags_validate_regex(value->string, option->validation_regex, option->validation_regex_options)))
+  if (option->validation_regex && (option->type != FLAGS_TYPE_STRING || !value->string || !libflags_validate_regex(value->string, option->validation_regex, option->validation_regex_options)))
     return false;
   if (mutex_lock(&context->mutex) != 0)
     return false;
@@ -630,7 +630,7 @@ bool flags_runtime_apply_batch(flags_context_t *context, const flags_update_t *u
     if (index == SIZE_MAX ||
         (context->schema->options[index].validation_regex &&
          (context->schema->options[index].type != FLAGS_TYPE_STRING || !updates[i].value.string ||
-          !flags_validate_regex(updates[i].value.string, context->schema->options[index].validation_regex, context->schema->options[index].validation_regex_options))) ||
+          !libflags_validate_regex(updates[i].value.string, context->schema->options[index].validation_regex, context->schema->options[index].validation_regex_options))) ||
         flags_source_priority(source) < flags_source_priority(context->stats[index].source) ||
         (context->schema->options[index].validate && !context->schema->options[index].validate(context, updates[i].name, &updates[i].value, NULL, 0, context->schema->options[index].user_data))) {
       free(options);

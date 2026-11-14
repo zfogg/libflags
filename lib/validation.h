@@ -1,14 +1,13 @@
-#include <libflags/validation.h>
+#pragma once
 
-#include <stddef.h>
+#include <stdbool.h>
+#include <stdint.h>
 
-#ifdef LIBFLAGS_HAS_PCRE2
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>
-#endif
 
-bool flags_validate_regex(const char *text, const char *pattern, uint32_t options) {
-#ifdef LIBFLAGS_HAS_PCRE2
+/* Regex validation is an implementation detail of option validation. */
+static inline bool libflags_validate_regex(const char *text, const char *pattern, uint32_t options) {
   int error_code;
   PCRE2_SIZE error_offset;
   pcre2_code *code;
@@ -28,10 +27,4 @@ bool flags_validate_regex(const char *text, const char *pattern, uint32_t option
   pcre2_match_data_free(match_data);
   pcre2_code_free(code);
   return match >= 0;
-#else
-  (void)text;
-  (void)pattern;
-  (void)options;
-  return false;
-#endif
 }
