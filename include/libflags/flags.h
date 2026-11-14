@@ -14,99 +14,160 @@
 
 /** A storage type understood by libflags. */
 typedef enum flags_value_type {
-  FLAGS_TYPE_BOOL,        /**< A boolean value. */
-  FLAGS_TYPE_INT64,       /**< A signed 64-bit integer. */
-  FLAGS_TYPE_UINT64,      /**< An unsigned 64-bit integer. */
-  FLAGS_TYPE_DOUBLE,      /**< A double-precision value. */
-  FLAGS_TYPE_STRING,      /**< An owned string value. */
-  FLAGS_TYPE_ENUM,        /**< An enum index. */
-  FLAGS_TYPE_PATH,        /**< A filesystem path. */
-  FLAGS_TYPE_FILE,        /**< A file path. */
-  FLAGS_TYPE_DIRECTORY,   /**< A directory path. */
-  FLAGS_TYPE_URL,         /**< A URL. */
-  FLAGS_TYPE_HOST,        /**< A host name. */
-  FLAGS_TYPE_ADDRESS,     /**< A host or network address. */
-  FLAGS_TYPE_ENDPOINT,    /**< A host, port, and optional scheme. */
-  FLAGS_TYPE_PORT,        /**< A network port. */
-  FLAGS_TYPE_DURATION,    /**< A duration in nanoseconds. */
-  FLAGS_TYPE_TIMESTAMP,   /**< A timestamp. */
-  FLAGS_TYPE_SIZE,        /**< A byte size with optional suffix. */
-  FLAGS_TYPE_RATE,        /**< A rate with optional suffix. */
-  FLAGS_TYPE_PERCENT,     /**< A percentage value. */
-  FLAGS_TYPE_DECIBEL,     /**< A decibel value or `auto`. */
-  FLAGS_TYPE_STRING_LIST, /**< A list of strings. */
-  FLAGS_TYPE_INT_LIST,    /**< A list of integers. */
-  FLAGS_TYPE_ENUM_LIST,   /**< A list of enum values. */
-  FLAGS_TYPE_COLOR,       /**< A color value. */
-  FLAGS_TYPE_COLOR_MODE,  /**< A terminal color mode. */
-  FLAGS_TYPE_LOG_LEVEL,   /**< A logging level. */
-  FLAGS_TYPE_CUSTOM       /**< A callback-defined value. */
+  /** A boolean value. */
+  FLAGS_TYPE_BOOL,
+  /** A signed 64-bit integer. */
+  FLAGS_TYPE_INT64,
+  /** An unsigned 64-bit integer. */
+  FLAGS_TYPE_UINT64,
+  /** A double-precision value. */
+  FLAGS_TYPE_DOUBLE,
+  /** An owned string value. */
+  FLAGS_TYPE_STRING,
+  /** An enum index. */
+  FLAGS_TYPE_ENUM,
+  /** A filesystem path. */
+  FLAGS_TYPE_PATH,
+  /** A file path. */
+  FLAGS_TYPE_FILE,
+  /** A directory path. */
+  FLAGS_TYPE_DIRECTORY,
+  /** A URL. */
+  FLAGS_TYPE_URL,
+  /** A host name. */
+  FLAGS_TYPE_HOST,
+  /** A host or network address. */
+  FLAGS_TYPE_ADDRESS,
+  /** A host, port, and optional scheme. */
+  FLAGS_TYPE_ENDPOINT,
+  /** A network port. */
+  FLAGS_TYPE_PORT,
+  /** A duration in nanoseconds. */
+  FLAGS_TYPE_DURATION,
+  /** A timestamp. */
+  FLAGS_TYPE_TIMESTAMP,
+  /** A byte size with optional suffix. */
+  FLAGS_TYPE_SIZE,
+  /** A rate with optional suffix. */
+  FLAGS_TYPE_RATE,
+  /** A percentage value. */
+  FLAGS_TYPE_PERCENT,
+  /** A decibel value or `auto`. */
+  FLAGS_TYPE_DECIBEL,
+  /** A list of strings. */
+  FLAGS_TYPE_STRING_LIST,
+  /** A list of integers. */
+  FLAGS_TYPE_INT_LIST,
+  /** A list of enum values. */
+  FLAGS_TYPE_ENUM_LIST,
+  /** A color value. */
+  FLAGS_TYPE_COLOR,
+  /** A terminal color mode. */
+  FLAGS_TYPE_COLOR_MODE,
+  /** A logging level. */
+  FLAGS_TYPE_LOG_LEVEL,
+  /** A callback-defined value. */
+  FLAGS_TYPE_CUSTOM
 } flags_value_type_t;
 
 /** The operation applied when a flag is repeated. */
 typedef enum flags_operation {
-  FLAGS_VALUE_ASSIGN,   /**< Replace the current value. */
-  FLAGS_VALUE_TOGGLE,   /**< Toggle a boolean value. */
-  FLAGS_VALUE_ADD,      /**< Add a numeric value. */
-  FLAGS_VALUE_SUBTRACT, /**< Subtract a numeric value. */
-  FLAGS_VALUE_APPEND,   /**< Append to a list or string. */
-  FLAGS_VALUE_CYCLE     /**< Cycle through enum values. */
+  /** Replace the current value. */
+  FLAGS_VALUE_ASSIGN,
+  /** Toggle a boolean value. */
+  FLAGS_VALUE_TOGGLE,
+  /** Add a numeric value. */
+  FLAGS_VALUE_ADD,
+  /** Subtract a numeric value. */
+  FLAGS_VALUE_SUBTRACT,
+  /** Append to a list or string. */
+  FLAGS_VALUE_APPEND,
+  /** Cycle through enum values. */
+  FLAGS_VALUE_CYCLE
 } flags_operation_t;
 
 /** The behavior of a flag independent of its value type. */
 typedef enum flags_option_behavior {
-  FLAGS_BEHAVIOR_VALUE,   /**< Parse and store a value. */
-  FLAGS_BEHAVIOR_ACTION,  /**< Invoke an action when present. */
-  FLAGS_BEHAVIOR_CALLBACK /**< Invoke application callback behavior. */
+  /** Parse and store a value. */
+  FLAGS_BEHAVIOR_VALUE,
+  /** Invoke an action when present. */
+  FLAGS_BEHAVIOR_ACTION,
+  /** Invoke application callback behavior. */
+  FLAGS_BEHAVIOR_CALLBACK
 } flags_option_behavior_t;
 
 /** Whether a flag consumes a following command-line value. */
 typedef enum flags_argument_requirement {
-  FLAGS_ARGUMENT_NONE,     /**< The flag has no value. */
-  FLAGS_ARGUMENT_REQUIRED, /**< The flag must have a value. */
-  FLAGS_ARGUMENT_OPTIONAL  /**< The value may be omitted. */
+  /** The flag has no value. */
+  FLAGS_ARGUMENT_NONE,
+  /** The flag must have a value. */
+  FLAGS_ARGUMENT_REQUIRED,
+  /** The value may be omitted. */
+  FLAGS_ARGUMENT_OPTIONAL
 } flags_argument_requirement_t;
 
 /** The meaning of a single hyphen for a file-valued option. */
 typedef enum flags_dash_behavior {
-  FLAGS_DASH_NOT_ALLOWED,    /**< Reject `-`. */
-  FLAGS_DASH_LITERAL,        /**< Preserve `-` as an ordinary file name. */
-  FLAGS_DASH_STDIN,          /**< Classify `-` as standard input. */
-  FLAGS_DASH_STDOUT,         /**< Classify `-` as standard output. */
-  FLAGS_DASH_STDIN_OR_STDOUT /**< Permit either stream direction. */
+  /** Reject `-`. */
+  FLAGS_DASH_NOT_ALLOWED,
+  /** Preserve `-` as an ordinary file name. */
+  FLAGS_DASH_LITERAL,
+  /** Classify `-` as standard input. */
+  FLAGS_DASH_STDIN,
+  /** Classify `-` as standard output. */
+  FLAGS_DASH_STDOUT,
+  /** Permit either stream direction. */
+  FLAGS_DASH_STDIN_OR_STDOUT
 } flags_dash_behavior_t;
 
 /** The normalized stream classification of a string value. */
 typedef enum flags_stream_kind {
-  FLAGS_STREAM_NONE,  /**< No stream classification. */
-  FLAGS_STREAM_FILE,  /**< A regular file or URL-like path. */
-  FLAGS_STREAM_STDIN, /**< Standard input. */
-  FLAGS_STREAM_STDOUT /**< Standard output. */
+  /** No stream classification. */
+  FLAGS_STREAM_NONE,
+  /** A regular file or URL-like path. */
+  FLAGS_STREAM_FILE,
+  /** Standard input. */
+  FLAGS_STREAM_STDIN,
+  /** Standard output. */
+  FLAGS_STREAM_STDOUT
 } flags_stream_kind_t;
 
 /** The number of values accepted by a positional descriptor. */
 typedef enum flags_positional_arity {
-  FLAGS_POSITIONAL_OPTIONAL,     /**< Zero or one value. */
-  FLAGS_POSITIONAL_REQUIRED,     /**< Exactly one value. */
-  FLAGS_POSITIONAL_ZERO_OR_MORE, /**< Any number of values. */
-  FLAGS_POSITIONAL_ONE_OR_MORE   /**< At least one value. */
+  /** Zero or one value. */
+  FLAGS_POSITIONAL_OPTIONAL,
+  /** Exactly one value. */
+  FLAGS_POSITIONAL_REQUIRED,
+  /** Any number of values. */
+  FLAGS_POSITIONAL_ZERO_OR_MORE,
+  /** At least one value. */
+  FLAGS_POSITIONAL_ONE_OR_MORE
 } flags_positional_arity_t;
 
 /** Policy for ordinary positional values encountered before `--`. */
 typedef enum flags_argument_order {
-  FLAGS_POSITIONAL_PERMUTE,              /**< Continue scanning for options. */
-  FLAGS_POSITIONAL_STOP,                 /**< Stop option parsing at the first value. */
-  FLAGS_POSITIONAL_ONLY_AFTER_TERMINATOR /**< Accept positionals only after `--`. */
+  /** Continue scanning for options. */
+  FLAGS_POSITIONAL_PERMUTE,
+  /** Stop option parsing at the first value. */
+  FLAGS_POSITIONAL_STOP,
+  /** Accept positionals only after `--`. */
+  FLAGS_POSITIONAL_ONLY_AFTER_TERMINATOR
 } flags_argument_order_t;
 
 /** The source used when assigning an option. */
 typedef enum flags_source {
-  FLAGS_SOURCE_DEFAULT,      /**< A schema default. */
-  FLAGS_SOURCE_CONFIG,       /**< A configuration document. */
-  FLAGS_SOURCE_ENVIRONMENT,  /**< An environment variable. */
-  FLAGS_SOURCE_COMMAND_LINE, /**< A command-line flag. */
-  FLAGS_SOURCE_RUNTIME,      /**< A live runtime update. */
-  FLAGS_SOURCE_CALLBACK      /**< An application callback update. */
+  /** A schema default. */
+  FLAGS_SOURCE_DEFAULT,
+  /** A configuration document. */
+  FLAGS_SOURCE_CONFIG,
+  /** An environment variable. */
+  FLAGS_SOURCE_ENVIRONMENT,
+  /** A command-line flag. */
+  FLAGS_SOURCE_COMMAND_LINE,
+  /** A live runtime update. */
+  FLAGS_SOURCE_RUNTIME,
+  /** An application callback update. */
+  FLAGS_SOURCE_CALLBACK
 } flags_source_t;
 
 /** A numeric value that can preserve an explicit `auto` spelling. */
@@ -119,10 +180,36 @@ typedef flags_semantic_number_t flags_decibel_t;
 typedef flags_semantic_number_t flags_percent_t;
 
 /** A logging severity emitted by a context. */
-typedef enum flags_log_level { FLAGS_LOG_TRACE, FLAGS_LOG_DEBUG, FLAGS_LOG_INFO, FLAGS_LOG_WARNING, FLAGS_LOG_ERROR } flags_log_level_t;
+typedef enum flags_log_level {
+  /** Trace-level diagnostic. */
+  FLAGS_LOG_TRACE,
+  /** Debug-level diagnostic. */
+  FLAGS_LOG_DEBUG,
+  /** Informational diagnostic. */
+  FLAGS_LOG_INFO,
+  /** Warning diagnostic. */
+  FLAGS_LOG_WARNING,
+  /** Error diagnostic. */
+  FLAGS_LOG_ERROR
+} flags_log_level_t;
 
 /** A category for a diagnostic event. */
-typedef enum flags_log_category { FLAGS_LOG_PARSE, FLAGS_LOG_VALIDATION, FLAGS_LOG_RUNTIME, FLAGS_LOG_JSON, FLAGS_LOG_CONFIG, FLAGS_LOG_COMMAND, FLAGS_LOG_MEMORY } flags_log_category_t;
+typedef enum flags_log_category {
+  /** Parsing diagnostics. */
+  FLAGS_LOG_PARSE,
+  /** Validation diagnostics. */
+  FLAGS_LOG_VALIDATION,
+  /** Runtime diagnostics. */
+  FLAGS_LOG_RUNTIME,
+  /** JSON diagnostics. */
+  FLAGS_LOG_JSON,
+  /** Configuration diagnostics. */
+  FLAGS_LOG_CONFIG,
+  /** Command diagnostics. */
+  FLAGS_LOG_COMMAND,
+  /** Memory diagnostics. */
+  FLAGS_LOG_MEMORY
+} flags_log_category_t;
 
 /** A typed value passed to or copied from the library. */
 typedef union flags_value {

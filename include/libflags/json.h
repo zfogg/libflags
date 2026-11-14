@@ -10,7 +10,16 @@
 #include <libflags/flags.h>
 
 /** Result of applying one JSON patch document. */
-typedef enum flags_patch_status { FLAGS_PATCH_APPLIED, FLAGS_PATCH_NOOP, FLAGS_PATCH_REVISION_CONFLICT, FLAGS_PATCH_INVALID } flags_patch_status_t;
+typedef enum flags_patch_status {
+  /** The patch was applied. */
+  FLAGS_PATCH_APPLIED,
+  /** The patch made no changes. */
+  FLAGS_PATCH_NOOP,
+  /** The expected revision did not match. */
+  FLAGS_PATCH_REVISION_CONFLICT,
+  /** The patch was invalid. */
+  FLAGS_PATCH_INVALID
+} flags_patch_status_t;
 
 /** Summary returned by flags_apply_json(). */
 typedef struct flags_patch_result {
