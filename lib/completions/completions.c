@@ -39,6 +39,16 @@ bool flags_completion_write(const flags_schema_t *schema, const char *program, f
         fprintf(output, " -s %c", option->short_name);
       fprintf(output, " -d '%s'\n", option->description ? option->description : option->name);
     }
+  } else if (shell == FLAGS_COMPLETION_POWERSHELL) {
+    fprintf(output, "Register-ArgumentCompleter -CommandName %s -ScriptBlock {\n", program);
+    fprintf(output, "  param($commandName, $wordToComplete, $cursorPosition)\n");
+    fprintf(output, "  @(" );
+    for (size_t i = 0; i < schema->option_count; ++i) {
+      if (i)
+        fputs(", ", output);
+      fprintf(output, "'--%s'", schema->options[i].name);
+    }
+    fprintf(output, ") | Where-Object { $_ -like \"$wordToComplete*\" }\n}\n");
   } else {
     return false;
   }

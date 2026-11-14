@@ -14,7 +14,9 @@ typedef enum flags_completion_shell {
   /** Zsh completion function syntax. */
   FLAGS_COMPLETION_ZSH,
   /** Fish completion command syntax. */
-  FLAGS_COMPLETION_FISH
+  FLAGS_COMPLETION_FISH,
+  /** PowerShell argument completer syntax. */
+  FLAGS_COMPLETION_POWERSHELL
 } flags_completion_shell_t;
 
 /**
