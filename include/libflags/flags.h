@@ -139,11 +139,11 @@ typedef union flags_value {
 typedef struct flags_context flags_context_t;
 
 /** Parses a textual value into its typed representation. */
-typedef bool (*flags_parse_callback_t)(flags_context_t *, const char *, flags_value_t *, void *);
+typedef bool (*flags_parse_callback_t)(flags_context_t *context, const char *text, flags_value_t *value, void *user_data);
 /** Validates a typed value before it is stored. */
-typedef bool (*flags_validate_callback_t)(const flags_context_t *, const char *, const flags_value_t *, char *, size_t, void *);
+typedef bool (*flags_validate_callback_t)(const flags_context_t *context, const char *text, const flags_value_t *value, char *error, size_t error_size, void *user_data);
 /** Observes a successful value change after storage is updated. */
-typedef void (*flags_change_callback_t)(flags_context_t *, const char *, const flags_value_t *, const flags_value_t *, void *);
+typedef void (*flags_change_callback_t)(flags_context_t *context, const char *name, const flags_value_t *old_value, const flags_value_t *new_value, void *user_data);
 
 /** A diagnostic event delivered to the instance logging hook. */
 typedef struct flags_log_event {
@@ -157,7 +157,7 @@ typedef struct flags_log_event {
 } flags_log_event_t;
 
 /** Receives diagnostic events from one context. */
-typedef void (*flags_log_callback_t)(const flags_log_event_t *, void *);
+typedef void (*flags_log_callback_t)(const flags_log_event_t *event, void *user_data);
 
 /** Configures optional per-context diagnostics. */
 typedef struct flags_logging_config {
@@ -193,7 +193,7 @@ typedef struct flags_parse_result {
 } flags_parse_result_t;
 
 /** Parse one positional value into application-owned state. */
-typedef bool (*flags_parse_positional_callback_t)(flags_context_t *, const char *, void *);
+typedef bool (*flags_parse_positional_callback_t)(flags_context_t *context, const char *text, void *user_data);
 
 /** Describes one positional argument family. */
 typedef struct flags_positional_spec {
