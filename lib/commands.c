@@ -245,6 +245,10 @@ bool flags_resolve_command_ex(flags_command_t *root, int argc, char **argv, flag
     }
     if (result->first_positional_index < 0)
       result->first_positional_index = i;
+    if (command == root && root->default_command && !strcmp(argv[i], "-")) {
+      command = root->default_command;
+      continue;
+    }
     flags_command_t *child = find_child(command, argv[i]);
     if (!child)
       break;
