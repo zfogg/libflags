@@ -1,10 +1,14 @@
 #include <libflags/builder.h>
+#include <libplatform/util/string.h>
 
 #include <stdlib.h>
 #include <string.h>
 
 struct flags_schema_builder {
   flags_option_spec_t *options;
+  char **owned_config_keys;
+  size_t owned_config_key_count;
+  size_t owned_config_key_capacity;
   size_t option_count;
   size_t option_capacity;
   flags_positional_spec_t *positionals;
@@ -42,6 +46,9 @@ void flags_schema_builder_destroy(flags_schema_builder_t *builder) {
   if (!builder)
     return;
   free(builder->options);
+  for (size_t i = 0; i < builder->owned_config_key_count; ++i)
+    free(builder->owned_config_keys[i]);
+  free(builder->owned_config_keys);
   free(builder->positionals);
   free(builder->dependencies);
   free(builder);
@@ -50,7 +57,19 @@ void flags_schema_builder_destroy(flags_schema_builder_t *builder) {
 bool flags_schema_builder_add_option(flags_schema_builder_t *builder, const flags_option_spec_t *option) {
   if (!builder || !option || !option->name || !flags_builder_grow((void **)&builder->options, &builder->option_capacity, builder->option_count, sizeof(*builder->options)))
     return false;
-  builder->options[builder->option_count++] = *option;
+  flags_option_spec_t copy = *option;
+  if (option->config_key) {
+    char *config_key = platform_strdup(option->config_key);
+    if (!config_key)
+      return false;
+    if (!flags_builder_grow((void **)&builder->owned_config_keys, &builder->owned_config_key_capacity, builder->owned_config_key_count, sizeof(*builder->owned_config_keys))) {
+      free(config_key);
+      return false;
+    }
+    builder->owned_config_keys[builder->owned_config_key_count++] = config_key;
+    copy.config_key = config_key;
+  }
+  builder->options[builder->option_count++] = copy;
   return true;
 }
 
