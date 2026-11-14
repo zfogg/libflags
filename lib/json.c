@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifdef LIBFLAGS_HAS_YYJSON
 #include <yyjson.h>
 
 static const flags_option_spec_t *find_option(const flags_context_t *context, const char *name) {
@@ -57,8 +56,9 @@ bool flags_apply_json(flags_context_t *context, const char *json, size_t length,
   }
   bool valid = true;
   size_t index = 0;
+  size_t max = yyjson_obj_size(root);
   yyjson_val *key, *value;
-  yyjson_obj_foreach(root, index, key, value) {
+  yyjson_obj_foreach(root, index, max, key, value) {
     const flags_option_spec_t *option = find_option(context, yyjson_get_str(key));
     if (!option || option->behavior == FLAGS_BEHAVIOR_ACTION || index >= count) {
       valid = false;
@@ -150,28 +150,3 @@ void flags_free_json(char *json) {
   free(json);
 }
 
-#else
-
-bool flags_apply_json(flags_context_t *context, const char *json, size_t length, uint64_t expected_revision, flags_source_t source, flags_patch_result_t *result) {
-  (void)context;
-  (void)json;
-  (void)length;
-  (void)expected_revision;
-  (void)source;
-  if (result)
-    *result = (flags_patch_result_t){.status = FLAGS_PATCH_INVALID};
-  return false;
-}
-
-bool flags_snapshot_json(const flags_context_t *context, char **out_json, uint64_t *out_revision) {
-  (void)context;
-  (void)out_json;
-  (void)out_revision;
-  return false;
-}
-
-void flags_free_json(char *json) {
-  free(json);
-}
-
-#endif
