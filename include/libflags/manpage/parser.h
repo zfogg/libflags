@@ -45,6 +45,16 @@ typedef struct flags_manpage_section {
 bool flags_manpage_parser_parse(FILE *input, flags_manpage_section_t **sections, size_t *count);
 
 /**
+ * @brief Parse sections from a file path.
+ * @param path Path to the groff template.
+ * @param[out] sections Receives an allocated section array.
+ * @param[out] count Receives the number of sections.
+ * @return `true` on success.
+ * @note Free the result with flags_manpage_parser_free().
+ */
+bool flags_manpage_parser_parse_file(const char *path, flags_manpage_section_t **sections, size_t *count);
+
+/**
  * @brief Parse sections from a memory buffer.
  * @param content Template bytes.
  * @param length Number of bytes in @p content.

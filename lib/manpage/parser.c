@@ -188,6 +188,17 @@ bool flags_manpage_parser_parse_memory(const char *content, size_t length, flags
   return ok;
 }
 
+bool flags_manpage_parser_parse_file(const char *path, flags_manpage_section_t **sections, size_t *count) {
+  if (!path || !sections || !count)
+    return false;
+  FILE *input = fopen(path, "rb");
+  if (!input)
+    return false;
+  bool ok = flags_manpage_parser_parse(input, sections, count);
+  fclose(input);
+  return ok;
+}
+
 void flags_manpage_parser_free(flags_manpage_section_t *sections, size_t count) {
   if (!sections)
     return;
