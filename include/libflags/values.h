@@ -28,6 +28,14 @@ typedef struct flags_int_list {
   size_t count;
 } flags_int_list_t;
 
+/** @brief One case-insensitive spelling for an integer-valued setting. */
+typedef struct flags_lookup_entry {
+  /** Accepted spelling. */
+  const char *name;
+  /** Value written when the spelling matches. */
+  int value;
+} flags_lookup_entry_t;
+
 /**
  * @brief Parses a signed 32-bit decimal integer with full-string validation.
  * @param text Input text.
@@ -81,6 +89,14 @@ bool flags_parse_size(const char *text, uint64_t *bytes);
  * @return Whether parsing succeeded.
  */
 bool flags_parse_enum(const char *text, const char *const *values, size_t value_count, size_t *index);
+/**
+ * @brief Looks up a case-insensitive spelling in a sentinel-terminated table.
+ * @param text Input spelling.
+ * @param entries Table terminated by an entry whose name is NULL.
+ * @param value Destination integer.
+ * @return Whether a spelling matched.
+ */
+bool flags_parse_lookup(const char *text, const flags_lookup_entry_t *entries, int *value);
 /**
  * @brief Parses a decibel value or `auto`.
  * @param text Input value.

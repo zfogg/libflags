@@ -215,6 +215,18 @@ bool flags_parse_enum(const char *text, const char *const *values, size_t count,
   return false;
 }
 
+bool flags_parse_lookup(const char *text, const flags_lookup_entry_t *entries, int *out) {
+  if (!text || !entries || !out)
+    return false;
+  for (size_t i = 0; entries[i].name; ++i) {
+    if (equal_case_insensitive(text, entries[i].name)) {
+      *out = entries[i].value;
+      return true;
+    }
+  }
+  return false;
+}
+
 bool flags_parse_decibel_or_auto(const char *text, flags_decibel_t *out) {
   if (!text || !out)
     return false;
