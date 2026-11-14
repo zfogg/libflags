@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <libflags/flags.h>
+#include <libflags/config/keys.h>
 #include <libflags/commands.h>
 #include <libflags/values.h>
 #include <libflags/config.h>
@@ -33,6 +34,12 @@ static bool count_positional(flags_context_t *context, const char *text, void *u
 }
 
 int main(void) {
+  char key[64];
+  assert(flags_config_make_toml_key("Network", "bind-address", key, sizeof(key)));
+  assert(!strcmp(key, "network.bind_address"));
+  assert(flags_config_make_cli_flag("bind-address", key, sizeof(key)));
+  assert(!strcmp(key, "--bind-address"));
+
   fixed_values_t fixed_values = {0};
   static const flags_option_spec_t fixed_option = {.name = "name", .type = FLAGS_TYPE_STRING, .storage_offset = offsetof(fixed_values_t, name), .storage_size = sizeof fixed_values.name};
   const flags_schema_t fixed_schema = {.options = &fixed_option, .option_count = 1};
