@@ -179,38 +179,6 @@ typedef struct flags_semantic_number {
 typedef flags_semantic_number_t flags_decibel_t;
 typedef flags_semantic_number_t flags_percent_t;
 
-/** A logging severity emitted by a context. */
-typedef enum flags_log_level {
-  /** Trace-level diagnostic. */
-  FLAGS_LOG_TRACE,
-  /** Debug-level diagnostic. */
-  FLAGS_LOG_DEBUG,
-  /** Informational diagnostic. */
-  FLAGS_LOG_INFO,
-  /** Warning diagnostic. */
-  FLAGS_LOG_WARNING,
-  /** Error diagnostic. */
-  FLAGS_LOG_ERROR
-} flags_log_level_t;
-
-/** A category for a diagnostic event. */
-typedef enum flags_log_category {
-  /** Parsing diagnostics. */
-  FLAGS_LOG_PARSE,
-  /** Validation diagnostics. */
-  FLAGS_LOG_VALIDATION,
-  /** Runtime diagnostics. */
-  FLAGS_LOG_RUNTIME,
-  /** JSON diagnostics. */
-  FLAGS_LOG_JSON,
-  /** Configuration diagnostics. */
-  FLAGS_LOG_CONFIG,
-  /** Command diagnostics. */
-  FLAGS_LOG_COMMAND,
-  /** Memory diagnostics. */
-  FLAGS_LOG_MEMORY
-} flags_log_category_t;
-
 /** A typed value passed to or copied from the library. */
 typedef union flags_value {
   /** Boolean representation. */
@@ -264,10 +232,6 @@ typedef void (*flags_change_callback_t)(flags_context_t *context, const char *na
 
 /** A diagnostic event delivered to the instance logging hook. */
 typedef struct flags_log_event {
-  /** Event severity. */
-  flags_log_level_t level;
-  /** Event category. */
-  flags_log_category_t category;
   /** Borrowed event text valid during callback. */
   const char *message;
   /** Related option, if any. */
@@ -293,8 +257,6 @@ typedef struct flags_logging_config {
   flags_log_callback_t callback;
   /** Callback user data. */
   void *user_data;
-  /** Lowest severity delivered. */
-  flags_log_level_t minimum_level;
 } flags_logging_config_t;
 
 /** One named value in an atomic runtime update batch. */
@@ -528,17 +490,12 @@ bool flags_set_text(flags_context_t *context, const char *name, const char *text
  */
 bool flags_parse_text(const flags_context_t *context, const char *name, const char *text, flags_value_t *value);
 /**
- * @brief Frees a string returned by flags_get_string.
- * @param value String returned by the library.
- */
-void flags_free_string(char *value);
-/**
  * @brief Retrieves a duplicated string value.
  * @param context Context to inspect.
  * @param name Canonical option name.
  * @param value Destination string pointer.
  * @return Whether the option was found and duplicated.
- * @note Release the returned string with flags_free_string().
+ * @note Release the returned string with free().
  */
 bool flags_get_string(const flags_context_t *context, const char *name, char **value);
 /**
@@ -615,25 +572,6 @@ bool flags_time_since_change(const flags_context_t *context, const char *name, u
  * @return Whether the configuration was accepted.
  */
 bool flags_set_logging(flags_context_t *context, const flags_logging_config_t *config);
-/**
- * @brief Emits a formatted diagnostic event when logging is enabled.
- * @param context Context emitting the event.
- * @param level Event severity.
- * @param category Event category.
- * @param option_name Related option, or NULL.
- * @param format printf-style format string.
- * @note Additional arguments must match @p format.
- */
-void flags_log(flags_context_t *context, flags_log_level_t level, flags_log_category_t category, const char *option_name, const char *format, ...);
-/**
- * @brief Emits a value diagnostic, replacing secret values with a redaction marker.
- * @param context Context emitting the event.
- * @param level Event severity.
- * @param category Event category.
- * @param option_name Related option, or NULL.
- * @param value Value to report.
- */
-void flags_log_value(flags_context_t *context, flags_log_level_t level, flags_log_category_t category, const char *option_name, const char *value);
 /**
  * @brief Installs per-context automatic environment-variable configuration.
  * @param context Context to configure.

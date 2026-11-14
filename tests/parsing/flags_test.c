@@ -32,11 +32,6 @@ static bool count_positional(flags_context_t *context, const char *text, void *u
   return true;
 }
 
-static void capture_log(const flags_log_event_t *event, void *user_data) {
-  char *message = user_data;
-  strcpy(message, event->message);
-}
-
 int main(void) {
   fixed_values_t fixed_values = {0};
   static const flags_option_spec_t fixed_option = {.name = "name", .type = FLAGS_TYPE_STRING, .storage_offset = offsetof(fixed_values_t, name), .storage_size = sizeof fixed_values.name};
@@ -73,19 +68,9 @@ int main(void) {
                                            .storage_offset = offsetof(values_t, file),
                                            .storage_size = sizeof(char *),
                                            .dynamic_string = true}};
-  static const flags_option_spec_t secret_option = {
-      .name = "password", .type = FLAGS_TYPE_STRING, .secret = true, .storage_offset = offsetof(values_t, file), .storage_size = sizeof(char *), .dynamic_string = true};
   const flags_positional_spec_t positionals[] = {{.name = "files", .metavar = "FILE...", .arity = FLAGS_POSITIONAL_ZERO_OR_MORE, .parse = count_positional, .user_data = &v.positional_count}};
   flags_schema_t s = {o, 2, positionals, 1, FLAGS_POSITIONAL_STOP};
   flags_context_t *c = flags_create(&s, &v, sizeof v);
-  values_t secret_values = {0};
-  const flags_schema_t secret_schema = {.options = &secret_option, .option_count = 1, .argument_order = FLAGS_POSITIONAL_STOP};
-  flags_context_t *secret_context = flags_create(&secret_schema, &secret_values, sizeof secret_values);
-  char log_message[128] = {0};
-  assert(secret_context && flags_set_logging(secret_context, &(flags_logging_config_t){.callback = capture_log, .user_data = log_message, .minimum_level = FLAGS_LOG_TRACE}));
-  flags_log_value(secret_context, FLAGS_LOG_INFO, FLAGS_LOG_CONFIG, "password", "do-not-leak");
-  assert(strstr(log_message, "<redacted>") && !strstr(log_message, "do-not-leak"));
-  flags_destroy(secret_context);
   char *a[] = {"prog", "--file", "-", "--", "-literal", "--bad"};
   flags_parse_result_t r;
   assert(flags_parse(c, 6, a, &r));

@@ -265,10 +265,6 @@ bool flags_get_string(const flags_context_t *context, const char *name, char **o
   return value.string == NULL || *out != NULL;
 }
 
-void flags_free_string(char *value) {
-  free(value);
-}
-
 static const flags_option_spec_t *flags_lookup(const flags_schema_t *schema, const char *name) {
   for (size_t i = 0; i < schema->option_count; ++i) {
     const flags_option_spec_t *option = &schema->options[i];
