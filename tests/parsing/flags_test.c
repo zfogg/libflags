@@ -66,6 +66,13 @@ int main(void) {
   const flags_schema_t *built_schema = flags_schema_builder_schema(builder);
   assert(built_schema && built_schema->option_count == 1);
   flags_schema_builder_destroy(builder);
+  int64_t large_integer = 0;
+  const flags_option_spec_t integer_option = {.name = "integer", .type = FLAGS_TYPE_INT64, .argument_requirement = FLAGS_ARGUMENT_REQUIRED, .storage_offset = 0, .storage_size = sizeof large_integer};
+  const flags_schema_t integer_schema = {.options = &integer_option, .option_count = 1};
+  flags_context_t *integer_context = flags_create(&integer_schema, &large_integer, sizeof large_integer);
+  assert(integer_context && flags_set_text(integer_context, "integer", "9223372036854770000", FLAGS_SOURCE_COMMAND_LINE));
+  assert(large_integer == INT64_C(9223372036854770000));
+  flags_destroy(integer_context);
   values_t v = {0};
   static const char *const verbose_aliases[] = {"debug"};
   static const flags_option_spec_t o[] = {{.name = "verbose",
