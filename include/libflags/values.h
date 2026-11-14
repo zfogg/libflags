@@ -52,6 +52,13 @@ bool flags_parse_port(const char *text, uint16_t *port);
  */
 bool flags_parse_bool_relaxed(const char *text, bool *value);
 /**
+ * @brief Parses a finite decimal floating-point value.
+ * @param text Input spelling.
+ * @param value Destination value.
+ * @return Whether the complete spelling was accepted.
+ */
+bool flags_parse_double(const char *text, double *value);
+/**
  * @brief Parses a duration to nanoseconds.
  * @param text Input duration.
  * @param nanoseconds Destination value.

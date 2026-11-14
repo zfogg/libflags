@@ -1,6 +1,8 @@
 #include <libflags/values.h>
 
 #include <ctype.h>
+#include <errno.h>
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -128,6 +130,18 @@ bool flags_parse_bool_relaxed(const char *text, bool *out) {
     return true;
   }
   return false;
+}
+
+bool flags_parse_double(const char *text, double *out) {
+  if (!text || !*text || !out)
+    return false;
+  char *end = NULL;
+  errno = 0;
+  double value = strtod(text, &end);
+  if (end == text || *end != '\0' || errno == ERANGE || !isfinite(value))
+    return false;
+  *out = value;
+  return true;
 }
 
 static bool parse_number(const char *text, double *number, const char **suffix) {
