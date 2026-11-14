@@ -79,7 +79,7 @@ bool flags_config_load_toml(flags_context_t *context, const char *path) {
   const flags_schema_t *schema = flags_context_schema(context);
   for (size_t i = 0; i < schema->option_count; ++i) {
     const flags_option_spec_t *option = &schema->options[i];
-    toml_datum_t datum = toml_seek(result.toptab, option->name);
+    toml_datum_t datum = toml_seek(result.toptab, option->config_key ? option->config_key : option->name);
     if (datum.type != TOML_UNKNOWN && !flags_config_apply_datum(context, option, datum)) {
       success = false;
       break;
@@ -104,27 +104,28 @@ bool flags_config_write_toml(const flags_context_t *context, const char *path) {
       success = false;
       break;
     }
+    const char *key = option->config_key ? option->config_key : option->name;
     switch (option->type) {
     case FLAGS_TYPE_BOOL:
-      fprintf(output, "%s = %s\n", option->name, value.boolean ? "true" : "false");
+      fprintf(output, "%s = %s\n", key, value.boolean ? "true" : "false");
       break;
     case FLAGS_TYPE_INT64:
     case FLAGS_TYPE_PORT:
-      fprintf(output, "%s = %lld\n", option->name, (long long)value.integer);
+      fprintf(output, "%s = %lld\n", key, (long long)value.integer);
       break;
     case FLAGS_TYPE_UINT64:
     case FLAGS_TYPE_DURATION:
     case FLAGS_TYPE_SIZE:
     case FLAGS_TYPE_RATE:
-      fprintf(output, "%s = %llu\n", option->name, (unsigned long long)value.unsigned_integer);
+      fprintf(output, "%s = %llu\n", key, (unsigned long long)value.unsigned_integer);
       break;
     case FLAGS_TYPE_DOUBLE:
     case FLAGS_TYPE_PERCENT:
     case FLAGS_TYPE_DECIBEL:
-      fprintf(output, "%s = %.17g\n", option->name, value.number);
+      fprintf(output, "%s = %.17g\n", key, value.number);
       break;
     default:
-      if (!flags_config_write_string(output, option->name, value.string))
+      if (!flags_config_write_string(output, key, value.string))
         success = false;
       break;
     }

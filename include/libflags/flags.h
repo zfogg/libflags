@@ -373,6 +373,8 @@ typedef struct flags_option_spec {
   bool required;
   /** Explicit environment name, or NULL to derive it. */
   const char *environment_name;
+  /** TOML/configuration key, or NULL to use the canonical option name. */
+  const char *config_key;
   /** Alternate environment names checked after environment_name/derived name. */
   const char *const *environment_aliases;
   /** Number of entries in environment_aliases. */
