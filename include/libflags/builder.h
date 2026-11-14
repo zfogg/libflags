@@ -26,6 +26,8 @@ void flags_schema_builder_destroy(flags_schema_builder_t *builder);
  * application-owned and must outlive the builder's schema view.
  * @note Generic presentation metadata such as `description` and `group` is
  *       copied as pointers as well; applications retain ownership of it.
+ * @note The `config_key` string is copied and owned by the builder, so callers
+ *       may provide a temporary generated key.
  */
 bool flags_schema_builder_add_option(flags_schema_builder_t *builder, const flags_option_spec_t *option);
 /**
