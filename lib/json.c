@@ -70,7 +70,6 @@ bool flags_apply_json(flags_context_t *context, const char *json, size_t length,
       break;
     }
     updates[index].name = option->name;
-    ++index;
   }
   if (valid && index) {
     uint64_t revision = 0;
