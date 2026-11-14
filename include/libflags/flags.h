@@ -213,13 +213,20 @@ typedef enum flags_log_category {
 
 /** A typed value passed to or copied from the library. */
 typedef union flags_value {
-  bool boolean;              /**< Boolean representation. */
-  int64_t integer;           /**< Signed integer representation. */
-  uint64_t unsigned_integer; /**< Unsigned integer representation. */
-  double number;             /**< Floating-point representation. */
-  const char *string;        /**< String representation. */
-  flags_decibel_t decibel;   /**< Decibel value, including `auto`. */
-  flags_percent_t percent;   /**< Percentage value, including `auto`. */
+  /** Boolean representation. */
+  bool boolean;
+  /** Signed integer representation. */
+  int64_t integer;
+  /** Unsigned integer representation. */
+  uint64_t unsigned_integer;
+  /** Floating-point representation. */
+  double number;
+  /** String representation. */
+  const char *string;
+  /** Decibel value, including `auto`. */
+  flags_decibel_t decibel;
+  /** Percentage value, including `auto`. */
+  flags_percent_t percent;
 } flags_value_t;
 
 /** An opaque, independently usable parser instance. */
@@ -234,13 +241,20 @@ typedef void (*flags_change_callback_t)(flags_context_t *context, const char *na
 
 /** A diagnostic event delivered to the instance logging hook. */
 typedef struct flags_log_event {
-  flags_log_level_t level;       /**< Event severity. */
-  flags_log_category_t category; /**< Event category. */
-  const char *message;           /**< Borrowed event text valid during callback. */
-  const char *option_name;       /**< Related option, if any. */
-  const char *command_name;      /**< Related command, if any. */
-  flags_source_t source;         /**< Origin of the operation. */
-  uint64_t revision;             /**< Context revision at emission. */
+  /** Event severity. */
+  flags_log_level_t level;
+  /** Event category. */
+  flags_log_category_t category;
+  /** Borrowed event text valid during callback. */
+  const char *message;
+  /** Related option, if any. */
+  const char *option_name;
+  /** Related command, if any. */
+  const char *command_name;
+  /** Origin of the operation. */
+  flags_source_t source;
+  /** Context revision at emission. */
+  uint64_t revision;
 } flags_log_event_t;
 
 /** Receives diagnostic events from one context. */
@@ -248,35 +262,48 @@ typedef void (*flags_log_callback_t)(const flags_log_event_t *event, void *user_
 
 /** Configures optional per-context diagnostics. */
 typedef struct flags_logging_config {
-  flags_log_callback_t callback;   /**< Callback, or NULL to disable logging. */
-  void *user_data;                 /**< Callback user data. */
-  flags_log_level_t minimum_level; /**< Lowest severity delivered. */
+  /** Callback, or NULL to disable logging. */
+  flags_log_callback_t callback;
+  /** Callback user data. */
+  void *user_data;
+  /** Lowest severity delivered. */
+  flags_log_level_t minimum_level;
 } flags_logging_config_t;
 
 /** One named value in an atomic runtime update batch. */
 typedef struct flags_update {
-  const char *name;    /**< Option name. */
-  flags_value_t value; /**< New typed value. */
+  /** Option name. */
+  const char *name;
+  /** New typed value. */
+  flags_value_t value;
 } flags_update_t;
 
 /** Configures automatic environment-variable lookup for one context. */
 typedef struct flags_environment_config {
-  const char *prefix; /**< Prefix for derived names, or NULL for none. */
-  bool derive_names;  /**< Derive names from option names when enabled. */
+  /** Prefix for derived names, or NULL for none. */
+  const char *prefix;
+  /** Derive names from option names when enabled. */
+  bool derive_names;
 } flags_environment_config_t;
 
 /** A value and its normalized stream interpretation. */
 typedef struct flags_stream_value {
-  const char *text;         /**< The original, borrowed text. */
-  flags_stream_kind_t kind; /**< The stream classification. */
+  /** The original, borrowed text. */
+  const char *text;
+  /** The stream classification. */
+  flags_stream_kind_t kind;
 } flags_stream_value_t;
 
 /** Results of parsing the command-line portion of an argument vector. */
 typedef struct flags_parse_result {
-  bool options_ended;         /**< Whether an explicit `--` was consumed. */
-  int positional_argc;        /**< Number of borrowed positional arguments. */
-  char **positional_argv;     /**< Borrowed positional argument pointers. */
-  int first_positional_index; /**< Index in the original argument vector. */
+  /** Whether an explicit `--` was consumed. */
+  bool options_ended;
+  /** Number of borrowed positional arguments. */
+  int positional_argc;
+  /** Borrowed positional argument pointers. */
+  char **positional_argv;
+  /** Index in the original argument vector. */
+  int first_positional_index;
 } flags_parse_result_t;
 
 /** Parse one positional value into application-owned state. */
@@ -284,51 +311,88 @@ typedef bool (*flags_parse_positional_callback_t)(flags_context_t *context, cons
 
 /** Describes one positional argument family. */
 typedef struct flags_positional_spec {
-  const char *name;                        /**< Stable descriptor name. */
-  const char *metavar;                     /**< Help placeholder. */
-  const char *description;                 /**< Help text. */
-  flags_positional_arity_t arity;          /**< Accepted cardinality. */
-  flags_parse_positional_callback_t parse; /**< Semantic parser callback. */
-  void *user_data;                         /**< Callback user data. */
+  /** Stable descriptor name. */
+  const char *name;
+  /** Help placeholder. */
+  const char *metavar;
+  /** Help text. */
+  const char *description;
+  /** Accepted cardinality. */
+  flags_positional_arity_t arity;
+  /** Semantic parser callback. */
+  flags_parse_positional_callback_t parse;
+  /** Callback user data. */
+  void *user_data;
 } flags_positional_spec_t;
 
 /** Describes one option and its binding into application storage. */
 typedef struct flags_option_spec {
-  const char *name;                                  /**< Long name without hyphens. */
-  const char *const *aliases;                        /**< Alternate long names. */
-  size_t alias_count;                                /**< Number of alternate names. */
-  const char *metavar;                               /**< Value placeholder for help and completion. */
-  const char *description;                           /**< Application-supplied help text. */
-  const char *environment_name;                      /**< Explicit environment name, or NULL to derive it. */
-  char short_name;                                   /**< Optional one-character name. */
-  flags_value_type_t type;                           /**< Storage/value type. */
-  flags_option_behavior_t behavior;                  /**< Value, action, or callback behavior. */
-  flags_operation_t default_operation;               /**< Operation for repeated flags. */
-  flags_argument_requirement_t argument_requirement; /**< Value cardinality. */
-  flags_dash_behavior_t dash_behavior;               /**< Meaning of a value equal to `-`. */
-  bool repeatable;                                   /**< Whether the flag may repeat. */
-  bool secret;                                       /**< Redact this option in diagnostics. */
-  size_t storage_offset;                             /**< Byte offset in application storage. */
-  size_t storage_size;                               /**< Bound field size in bytes. */
-  const void *default_value;                         /**< Optional default value. */
-  const char *const *enum_values;                    /**< Optional enum spellings. */
-  size_t enum_value_count;                           /**< Number of enum spellings. */
-  const char *validation_regex;                      /**< Optional PCRE2 pattern for string validation. */
-  uint32_t validation_regex_options;                 /**< PCRE2 compile options for validation_regex. */
-  bool dynamic_string;                               /**< Whether strings are duplicated. */
-  flags_parse_callback_t parse;                      /**< Optional textual parser. */
-  flags_validate_callback_t validate;                /**< Optional validator. */
-  flags_change_callback_t on_change;                 /**< Optional change callback. */
-  void *user_data;                                   /**< Callback context. */
+  /** Long name without hyphens. */
+  const char *name;
+  /** Alternate long names. */
+  const char *const *aliases;
+  /** Number of alternate names. */
+  size_t alias_count;
+  /** Value placeholder for help and completion. */
+  const char *metavar;
+  /** Application-supplied help text. */
+  const char *description;
+  /** Explicit environment name, or NULL to derive it. */
+  const char *environment_name;
+  /** Optional one-character name. */
+  char short_name;
+  /** Storage/value type. */
+  flags_value_type_t type;
+  /** Value, action, or callback behavior. */
+  flags_option_behavior_t behavior;
+  /** Operation for repeated flags. */
+  flags_operation_t default_operation;
+  /** Value cardinality. */
+  flags_argument_requirement_t argument_requirement;
+  /** Meaning of a value equal to `-`. */
+  flags_dash_behavior_t dash_behavior;
+  /** Whether the flag may repeat. */
+  bool repeatable;
+  /** Redact this option in diagnostics. */
+  bool secret;
+  /** Byte offset in application storage. */
+  size_t storage_offset;
+  /** Bound field size in bytes. */
+  size_t storage_size;
+  /** Optional default value. */
+  const void *default_value;
+  /** Optional enum spellings. */
+  const char *const *enum_values;
+  /** Number of enum spellings. */
+  size_t enum_value_count;
+  /** Optional PCRE2 pattern for string validation. */
+  const char *validation_regex;
+  /** PCRE2 compile options for validation_regex. */
+  uint32_t validation_regex_options;
+  /** Whether strings are duplicated. */
+  bool dynamic_string;
+  /** Optional textual parser. */
+  flags_parse_callback_t parse;
+  /** Optional validator. */
+  flags_validate_callback_t validate;
+  /** Optional change callback. */
+  flags_change_callback_t on_change;
+  /** Callback context. */
+  void *user_data;
 } flags_option_spec_t;
 
 /** Immutable collection of option and positional descriptors. */
 typedef struct flags_schema {
-  const flags_option_spec_t *options;         /**< Option descriptor array. */
-  size_t option_count;                        /**< Number of options. */
-  const flags_positional_spec_t *positionals; /**< Positional descriptor array. */
-  size_t positional_count;                    /**< Number of positionals. */
-  flags_argument_order_t argument_order;      /**< Positional/option ordering policy. */
+  /** Option descriptor array. */
+  const flags_option_spec_t *options;
+  /** Number of options. */
+  size_t option_count;
+  /** Positional descriptor array. */
+  const flags_positional_spec_t *positionals;
+  /** Number of positionals. */
+  size_t positional_count;
+  /** Positional/option ordering policy. */
+  flags_argument_order_t argument_order;
 } flags_schema_t;
 
 /** Creates an independent context bound to caller-owned storage. */

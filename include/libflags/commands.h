@@ -13,12 +13,18 @@ typedef struct flags_command flags_command_t;
 
 /** Result of resolving a root command and its command-line boundary. */
 typedef struct flags_command_resolution {
-  flags_command_t *command;   /**< Selected command. */
-  int command_index;          /**< argv index, or -1 when defaulted. */
-  bool used_default_command;  /**< Whether root default selection was used. */
-  bool used_implicit_command; /**< Whether an option selected the command. */
-  bool options_ended;         /**< Whether `--` occurred before resolution ended. */
-  int first_positional_index; /**< First non-option candidate, or -1. */
+  /** Selected command. */
+  flags_command_t *command;
+  /** argv index, or -1 when defaulted. */
+  int command_index;
+  /** Whether root default selection was used. */
+  bool used_default_command;
+  /** Whether an option selected the command. */
+  bool used_implicit_command;
+  /** Whether `--` occurred before resolution ended. */
+  bool options_ended;
+  /** First non-option candidate, or -1. */
+  int first_positional_index;
 } flags_command_resolution_t;
 
 /** Creates a command below an optional parent command. */

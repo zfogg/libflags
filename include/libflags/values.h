@@ -10,14 +10,18 @@
 
 /** An owned list of string values parsed from comma-separated text. */
 typedef struct flags_string_list {
-  char **items; /**< Allocated item strings. */
-  size_t count; /**< Number of items. */
+  /** Allocated item strings. */
+  char **items;
+  /** Number of items. */
+  size_t count;
 } flags_string_list_t;
 
 /** An owned list of signed integer values parsed from comma-separated text. */
 typedef struct flags_int_list {
-  int64_t *items; /**< Allocated integer values. */
-  size_t count;   /**< Number of items. */
+  /** Allocated integer values. */
+  int64_t *items;
+  /** Number of items. */
+  size_t count;
 } flags_int_list_t;
 
 /** Parses true/false, yes/no, on/off, and 1/0 spellings. */
