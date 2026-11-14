@@ -31,6 +31,14 @@ typedef struct {
   float ratio;
 } narrow_values_t;
 
+static void apply_custom_value(flags_context_t *context, const char *name, const flags_value_t *old_value, const flags_value_t *new_value, void *user_data) {
+  (void)name;
+  (void)old_value;
+  (void)user_data;
+  int *destination = flags_context_storage(context);
+  *destination = atoi(new_value->string);
+}
+
 static bool count_positional(flags_context_t *context, const char *text, void *user_data) {
   (void)context;
   (void)text;
@@ -188,6 +196,13 @@ int main(void) {
   assert(flags_set_text(dependency_context, "identity", NULL, FLAGS_SOURCE_COMMAND_LINE));
   assert(flags_validate(dependency_context));
   flags_destroy(dependency_context);
+  int custom_value = 0;
+  const flags_option_spec_t custom_option = {.name = "custom", .type = FLAGS_TYPE_CUSTOM, .behavior = FLAGS_BEHAVIOR_CALLBACK, .storage_offset = 0, .storage_size = 0, .on_change = apply_custom_value};
+  const flags_schema_t custom_schema = {.options = &custom_option, .option_count = 1};
+  flags_context_t *custom_context = flags_create(&custom_schema, &custom_value, sizeof custom_value);
+  assert(custom_context && flags_set_text(custom_context, "custom", "42", FLAGS_SOURCE_COMMAND_LINE));
+  assert(custom_value == 42);
+  flags_destroy(custom_context);
   FILE *generated = tmpfile();
   assert(generated);
   assert(flags_completion_write(&s, "example", FLAGS_COMPLETION_BASH, generated));
