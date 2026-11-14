@@ -175,6 +175,19 @@ int main(void) {
   assert(!flags_set(c, "verbose", &precedence, FLAGS_SOURCE_ENVIRONMENT));
   assert(flags_parse(c, 2, (char *[]){"prog", "--debug"}, &r));
   assert(flags_was_explicitly_set(c, "verbose"));
+  bool dependency_values[2] = {false, false};
+  const flags_option_spec_t dependency_options[] = {
+      {.name = "secure", .type = FLAGS_TYPE_BOOL, .argument_requirement = FLAGS_ARGUMENT_NONE, .storage_offset = 0, .storage_size = sizeof(bool)},
+      {.name = "identity", .type = FLAGS_TYPE_BOOL, .argument_requirement = FLAGS_ARGUMENT_NONE, .storage_offset = sizeof(bool), .storage_size = sizeof(bool)}};
+  const flags_dependency_t dependency = {.option_name = "secure", .related_option = "identity", .type = FLAGS_DEPENDENCY_REQUIRES};
+  const flags_schema_t dependency_schema = {.options = dependency_options, .option_count = 2, .dependencies = &dependency, .dependency_count = 1};
+  flags_context_t *dependency_context = flags_create(&dependency_schema, dependency_values, sizeof dependency_values);
+  assert(dependency_context);
+  assert(flags_set_text(dependency_context, "secure", NULL, FLAGS_SOURCE_COMMAND_LINE));
+  assert(!flags_validate(dependency_context));
+  assert(flags_set_text(dependency_context, "identity", NULL, FLAGS_SOURCE_COMMAND_LINE));
+  assert(flags_validate(dependency_context));
+  flags_destroy(dependency_context);
   FILE *generated = tmpfile();
   assert(generated);
   assert(flags_completion_write(&s, "example", FLAGS_COMPLETION_BASH, generated));
