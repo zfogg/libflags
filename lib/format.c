@@ -52,7 +52,7 @@ int flags_format_default_value(flags_value_type_t type, const void *default_valu
   case FLAGS_TYPE_HOST:
   case FLAGS_TYPE_ADDRESS:
   case FLAGS_TYPE_ENDPOINT:
-    return snprintf(buffer, buffer_size, "%s", *(const char *const *)default_value);
+    return snprintf(buffer, buffer_size, "%s", *(const char *const *)default_value ? *(const char *const *)default_value : "(null)");
   default:
     return 0;
   }

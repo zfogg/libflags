@@ -1,4 +1,5 @@
 #include <libflags/help.h>
+#include <libflags/format.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
@@ -39,31 +40,7 @@ static size_t flags_help_option_width(const flags_schema_t *schema) {
 static const char *flags_help_default(const flags_option_spec_t *option, char *buffer, size_t buffer_size) {
   if (!option->default_value || !buffer || buffer_size == 0)
     return NULL;
-  switch (option->type) {
-  case FLAGS_TYPE_BOOL:
-    snprintf(buffer, buffer_size, "%s", *(const bool *)option->default_value ? "true" : "false");
-    break;
-  case FLAGS_TYPE_INT64:
-  case FLAGS_TYPE_PORT:
-    snprintf(buffer, buffer_size, "%" PRId64, *(const int64_t *)option->default_value);
-    break;
-  case FLAGS_TYPE_DOUBLE:
-    snprintf(buffer, buffer_size, "%.17g", *(const double *)option->default_value);
-    break;
-  case FLAGS_TYPE_STRING:
-  case FLAGS_TYPE_PATH:
-  case FLAGS_TYPE_FILE:
-  case FLAGS_TYPE_DIRECTORY:
-  case FLAGS_TYPE_URL:
-  case FLAGS_TYPE_HOST:
-  case FLAGS_TYPE_ADDRESS:
-  case FLAGS_TYPE_ENDPOINT:
-    snprintf(buffer, buffer_size, "%s", *(const char *const *)option->default_value);
-    break;
-  default:
-    return NULL;
-  }
-  return buffer;
+  return flags_format_default_value(option->type, option->default_value, buffer, buffer_size) > 0 ? buffer : NULL;
 }
 
 bool flags_help_write_options(const flags_schema_t *schema, const char *program_name, const char *description, FILE *output) {
