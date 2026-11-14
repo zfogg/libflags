@@ -31,6 +31,14 @@ typedef struct {
   float ratio;
 } narrow_values_t;
 
+static char command_diagnostic[256];
+
+static void capture_command_diagnostic(const flags_log_event_t *event, void *user_data) {
+  (void)user_data;
+  if (event && event->message)
+    snprintf(command_diagnostic, sizeof(command_diagnostic), "%s", event->message);
+}
+
 static void apply_custom_value(flags_context_t *context, const char *name, const flags_value_t *old_value, const flags_value_t *new_value, void *user_data) {
   (void)name;
   (void)old_value;
@@ -244,6 +252,16 @@ int main(void) {
   assert(client && flags_resolve_command_ex(root, 4, explicit_argv, &resolution));
   assert(resolution.command == client && resolution.command_index == 3);
   assert(resolution.first_positional_index == 3);
+  static const flags_schema_t command_schema = {0};
+  flags_context_t *command_context = flags_create(&command_schema, NULL, 0);
+  assert(command_context);
+  assert(flags_set_logging(command_context, &(flags_logging_config_t){.callback = capture_command_diagnostic}));
+  char *late_binary_argv[] = {"prog", "client", "--port", "8080"};
+  assert(flags_resolve_command_ex(root, 4, late_binary_argv, &resolution));
+  command_diagnostic[0] = '\0';
+  assert(!flags_command_validate_order(command_context, root, 4, late_binary_argv, &resolution));
+  assert(strstr(command_diagnostic, "--port") && strstr(command_diagnostic, "client"));
+  flags_destroy(command_context);
   char *stdin_argv[] = {"prog", "-"};
   assert(flags_resolve_command_ex(root, 2, stdin_argv, &resolution));
   assert(resolution.command == mirror);
