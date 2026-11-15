@@ -52,6 +52,7 @@ bool flags_manpage_write(const flags_schema_t *schema, const flags_manpage_metad
 bool flags_manpage_write_environment(const flags_schema_t *schema, const char *prefix, FILE *output) {
   if (!schema || !output)
     return false;
+  fputs(".SH ENVIRONMENT\n", output);
   for (size_t i = 0; i < schema->option_count; ++i) {
     const flags_option_spec_t *option = &schema->options[i];
     char derived[256];
