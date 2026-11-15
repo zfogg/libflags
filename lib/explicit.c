@@ -14,6 +14,8 @@ struct flags_explicit_snapshot {
   size_t count;
 };
 
+static flags_explicit_snapshot_t *g_explicit_state;
+
 static size_t flags_explicit_find(const flags_explicit_snapshot_t *snapshot, const char *name) {
   if (!snapshot || !name)
     return SIZE_MAX;
@@ -74,4 +76,21 @@ void flags_explicit_snapshot_destroy(flags_explicit_snapshot_t *snapshot) {
     free(snapshot->entries[i].name);
   free(snapshot->entries);
   free(snapshot);
+}
+
+bool flags_explicit_state_merge(const flags_context_t *context) {
+  if (!g_explicit_state)
+    g_explicit_state = flags_explicit_snapshot_create(context);
+  else if (!flags_explicit_snapshot_merge(g_explicit_state, context))
+    return false;
+  return g_explicit_state != NULL;
+}
+
+bool flags_explicit_state_was_set(const char *name) {
+  return flags_explicit_snapshot_was_set(g_explicit_state, name);
+}
+
+void flags_explicit_state_destroy(void) {
+  flags_explicit_snapshot_destroy(g_explicit_state);
+  g_explicit_state = NULL;
 }
