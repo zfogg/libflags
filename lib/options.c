@@ -72,9 +72,9 @@ static size_t flags_type_min_size(const flags_option_spec_t *option) {
   if (option->type == FLAGS_TYPE_STRING && !option->dynamic_string)
     return sizeof(char);
   if (option->type == FLAGS_TYPE_INT64 || option->type == FLAGS_TYPE_PORT)
-    return sizeof(int32_t);
+    return sizeof(int8_t);
   if (option->type == FLAGS_TYPE_UINT64 || option->type == FLAGS_TYPE_DURATION || option->type == FLAGS_TYPE_SIZE || option->type == FLAGS_TYPE_RATE)
-    return sizeof(uint32_t);
+    return sizeof(uint8_t);
   if (option->type == FLAGS_TYPE_DOUBLE)
     return sizeof(float);
   return flags_type_size(option);
