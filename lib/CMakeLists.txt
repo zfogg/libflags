@@ -1,5 +1,6 @@
 set(LIBFLAGS_SOURCES
   options.c
+  explicit.c
   format.c
   help.c
   json.c
