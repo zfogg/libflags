@@ -67,7 +67,7 @@ static size_t flags_type_size(const flags_option_spec_t *option) {
 
 /** Returns the smallest storage width accepted for integer-compatible fields. */
 static size_t flags_type_min_size(const flags_option_spec_t *option) {
-  if (option->behavior == FLAGS_BEHAVIOR_CALLBACK && option->storage_size == 0)
+  if ((option->behavior == FLAGS_BEHAVIOR_CALLBACK || option->behavior == FLAGS_BEHAVIOR_ACTION) && option->storage_size == 0)
     return 0;
   if (option->type == FLAGS_TYPE_STRING && !option->dynamic_string)
     return sizeof(char);
