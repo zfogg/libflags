@@ -118,6 +118,7 @@ bool flags_config_write_toml(const flags_context_t *context, const char *path) {
   if (!output)
     return false;
   bool success = true;
+  char current_group[256] = {0};
   const flags_schema_t *schema = flags_context_schema(context);
   for (size_t i = 0; i < schema->option_count; ++i) {
     const flags_option_spec_t *option = &schema->options[i];
@@ -127,27 +128,47 @@ bool flags_config_write_toml(const flags_context_t *context, const char *path) {
       break;
     }
     const char *key = option->config_key ? option->config_key : option->name;
+    const char *field = key;
+    if (option->config_key) {
+      const char *separator = strchr(key, '.');
+      if (separator) {
+        size_t group_length = (size_t)(separator - key);
+        if (group_length >= sizeof(current_group)) {
+          success = false;
+          break;
+        }
+        if (strncmp(current_group, key, group_length) != 0 || current_group[group_length] != '\0') {
+          memcpy(current_group, key, group_length);
+          current_group[group_length] = '\0';
+          if (fprintf(output, "\n[%s]\n", current_group) < 0) {
+            success = false;
+            break;
+          }
+        }
+        field = separator + 1;
+      }
+    }
     switch (option->type) {
     case FLAGS_TYPE_BOOL:
-      fprintf(output, "%s = %s\n", key, value.boolean ? "true" : "false");
+      fprintf(output, "%s = %s\n", field, value.boolean ? "true" : "false");
       break;
     case FLAGS_TYPE_INT64:
     case FLAGS_TYPE_PORT:
-      fprintf(output, "%s = %lld\n", key, (long long)value.integer);
+      fprintf(output, "%s = %lld\n", field, (long long)value.integer);
       break;
     case FLAGS_TYPE_UINT64:
     case FLAGS_TYPE_DURATION:
     case FLAGS_TYPE_SIZE:
     case FLAGS_TYPE_RATE:
-      fprintf(output, "%s = %llu\n", key, (unsigned long long)value.unsigned_integer);
+      fprintf(output, "%s = %llu\n", field, (unsigned long long)value.unsigned_integer);
       break;
     case FLAGS_TYPE_DOUBLE:
     case FLAGS_TYPE_PERCENT:
     case FLAGS_TYPE_DECIBEL:
-      fprintf(output, "%s = %.17g\n", key, value.number);
+      fprintf(output, "%s = %.17g\n", field, value.number);
       break;
     default:
-      if (!flags_config_write_string(output, key, value.string))
+      if (!flags_config_write_string(output, field, value.string))
         success = false;
       break;
     }
