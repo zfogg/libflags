@@ -61,8 +61,11 @@ static bool flags_config_apply_datum(flags_context_t *context, const flags_optio
   flags_value_t value = {0};
   switch (datum.type) {
   case TOML_STRING:
+    /* TOML users commonly quote values that are numeric or boolean in the
+     * hand-written configuration.  Reuse the normal text parser so config,
+     * environment, and command-line sources accept the same value syntax. */
     if (option->type != FLAGS_TYPE_STRING)
-      return false;
+      return flags_was_explicitly_set(context, option->name) || flags_set_text(context, option->name, datum.u.s, FLAGS_SOURCE_CONFIG);
     value.string = datum.u.s;
     break;
   case TOML_INT64:
