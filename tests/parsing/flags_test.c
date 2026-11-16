@@ -214,7 +214,8 @@ int main(void) {
   assert(custom_context && flags_set_text(custom_context, "custom", "42", FLAGS_SOURCE_COMMAND_LINE));
   assert(custom_value == 42);
   flags_destroy(custom_context);
-  FILE *generated = tmpfile();
+  const char *generated_path = "libflags-generated.txt";
+  FILE *generated = fopen(generated_path, "w+b");
   assert(generated);
   assert(flags_completion_write(&s, "example", FLAGS_COMPLETION_BASH, generated));
   fflush(generated);
@@ -225,6 +226,7 @@ int main(void) {
   assert(strstr(completion_text, "--debug") != NULL);
   assert(flags_manpage_write(&s, &(flags_manpage_metadata_t){.program_name = "example"}, generated));
   fclose(generated);
+  remove(generated_path);
   flags_command_t *root = flags_command_create(NULL, "ascii-chat", "root");
   flags_command_t *mirror = flags_command_create(root, "mirror", "mirror mode");
   assert(root && mirror && flags_command_set_default(root, mirror));
