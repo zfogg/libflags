@@ -55,5 +55,16 @@ bool flags_explicit_state_merge(const flags_context_t *context);
  */
 bool flags_explicit_state_was_set(const char *name);
 
+/**
+ * @brief Updates the process-wide explicit state for a runtime assignment.
+ * @param name Canonical option name.
+ * @param explicitly_set Whether the option should be treated as explicit.
+ * @return true when the state was updated, or false for invalid input or an
+ *         unavailable option state.
+ * @note This is intended for libraries that apply validated settings after
+ *       command-line and configuration parsing has completed.
+ */
+bool flags_explicit_state_set(const char *name, bool explicitly_set);
+
 /** @brief Clears libflags' process-wide explicit option state. */
 void flags_explicit_state_destroy(void);

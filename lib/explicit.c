@@ -90,6 +90,16 @@ bool flags_explicit_state_was_set(const char *name) {
   return flags_explicit_snapshot_was_set(g_explicit_state, name);
 }
 
+bool flags_explicit_state_set(const char *name, bool explicitly_set) {
+  if (!g_explicit_state || !name)
+    return false;
+  size_t index = flags_explicit_find(g_explicit_state, name);
+  if (index == SIZE_MAX)
+    return false;
+  g_explicit_state->entries[index].explicitly_set = explicitly_set;
+  return true;
+}
+
 void flags_explicit_state_destroy(void) {
   flags_explicit_snapshot_destroy(g_explicit_state);
   g_explicit_state = NULL;
