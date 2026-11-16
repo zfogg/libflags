@@ -334,6 +334,21 @@ typedef struct flags_positional_spec {
   void *user_data;
 } flags_positional_spec_t;
 
+/** @brief Relationship enforced between two options. */
+typedef enum flags_dependency_type { FLAGS_DEPENDENCY_REQUIRES, FLAGS_DEPENDENCY_CONFLICTS, FLAGS_DEPENDENCY_IMPLIES } flags_dependency_type_t;
+
+/** @brief One option dependency rule. */
+typedef struct flags_dependency {
+  /** Option whose presence activates the rule. */
+  const char *option_name;
+  /** Required, conflicting, or implied option. */
+  const char *related_option;
+  /** Rule kind. */
+  flags_dependency_type_t type;
+  /** Optional diagnostic text. */
+  const char *error_message;
+} flags_dependency_t;
+
 /**
  * @brief Describes one option and its binding into application storage.
  */
@@ -348,8 +363,18 @@ typedef struct flags_option_spec {
   const char *metavar;
   /** Application-supplied help text. */
   const char *description;
+  /** Logical help section, or NULL for the default section. */
+  const char *group;
+  /** Whether the option must be supplied by the caller or configuration. */
+  bool required;
   /** Explicit environment name, or NULL to derive it. */
   const char *environment_name;
+  /** TOML/configuration key, or NULL to use the canonical option name. */
+  const char *config_key;
+  /** Alternate environment names checked after environment_name/derived name. */
+  const char *const *environment_aliases;
+  /** Number of entries in environment_aliases. */
+  size_t environment_alias_count;
   /** Optional one-character name. */
   char short_name;
   /** Storage/value type. */
@@ -406,6 +431,10 @@ typedef struct flags_schema {
   size_t positional_count;
   /** Positional/option ordering policy. */
   flags_argument_order_t argument_order;
+  /** Dependency rules. */
+  const flags_dependency_t *dependencies;
+  /** Number of dependency rules. */
+  size_t dependency_count;
 } flags_schema_t;
 
 /**
@@ -472,6 +501,13 @@ bool flags_split_arguments(int argc, char **argv, flags_parse_result_t *result);
  * @return Whether the context is valid.
  */
 bool flags_validate(const flags_context_t *context);
+/**
+ * @brief Returns the caller-owned storage bound to a context.
+ * @param context Context to inspect.
+ * @return Borrowed storage pointer, or NULL.
+ * @note The pointer is valid only while the context remains alive.
+ */
+void *flags_context_storage(flags_context_t *context);
 /**
  * @brief Copies one option value into caller-provided storage.
  * @param context Context to inspect.

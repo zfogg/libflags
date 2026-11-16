@@ -1,10 +1,13 @@
 #include <assert.h>
 #include <libflags/flags.h>
+#include <libflags/config/keys.h>
+#include <libflags/storage.h>
 #include <libflags/commands.h>
 #include <libflags/values.h>
 #include <libflags/config.h>
 #include <libflags/completions/completions.h>
 #include <libflags/manpage/manpage.h>
+#include <libflags/levenshtein.h>
 #include <libflags/builder.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,6 +27,27 @@ typedef struct {
   flags_percent_t coverage;
 } semantic_values_t;
 
+typedef struct {
+  int value;
+  float ratio;
+} narrow_values_t;
+
+static char command_diagnostic[256];
+
+static void capture_command_diagnostic(const flags_log_event_t *event, void *user_data) {
+  (void)user_data;
+  if (event && event->message)
+    snprintf(command_diagnostic, sizeof(command_diagnostic), "%s", event->message);
+}
+
+static void apply_custom_value(flags_context_t *context, const char *name, const flags_value_t *old_value, const flags_value_t *new_value, void *user_data) {
+  (void)name;
+  (void)old_value;
+  (void)user_data;
+  int *destination = flags_context_storage(context);
+  *destination = atoi(new_value->string);
+}
+
 static bool count_positional(flags_context_t *context, const char *text, void *user_data) {
   (void)context;
   (void)text;
@@ -32,7 +56,25 @@ static bool count_positional(flags_context_t *context, const char *text, void *u
   return true;
 }
 
-int main(void) {
+int libflags_parsing_contract(void) {
+  const char *suggestion_candidates[] = {"server", "serve", "client", NULL};
+  assert(!strcmp(flags_levenshtein_find_similar("servr", suggestion_candidates), "server"));
+
+  char key[64];
+  assert(flags_config_make_toml_key("Network", "bind-address", key, sizeof(key)));
+  assert(!strcmp(key, "network.bind_address"));
+  assert(flags_config_make_cli_flag("bind-address", key, sizeof(key)));
+  assert(!strcmp(key, "--bind-address"));
+
+  int stored = 3;
+  int initial = 2;
+  assert(flags_storage_is_set(FLAGS_TYPE_INT64, &stored, sizeof(stored), &initial, sizeof(initial)));
+  assert(flags_storage_apply_text(FLAGS_TYPE_INT64, &stored, sizeof(stored), "7"));
+  assert(stored == 7);
+  const flags_lookup_entry_t lookup[] = {{"AUTO", 4}, {"manual", 9}, {NULL, 0}};
+  assert(flags_parse_lookup("auto", lookup, &stored));
+  assert(stored == 4);
+
   fixed_values_t fixed_values = {0};
   static const flags_option_spec_t fixed_option = {.name = "name", .type = FLAGS_TYPE_STRING, .storage_offset = offsetof(fixed_values_t, name), .storage_size = sizeof fixed_values.name};
   const flags_schema_t fixed_schema = {.options = &fixed_option, .option_count = 1};
@@ -49,6 +91,22 @@ int main(void) {
   const flags_schema_t *built_schema = flags_schema_builder_schema(builder);
   assert(built_schema && built_schema->option_count == 1);
   flags_schema_builder_destroy(builder);
+  int64_t large_integer = 0;
+  const flags_option_spec_t integer_option = {.name = "integer", .type = FLAGS_TYPE_INT64, .argument_requirement = FLAGS_ARGUMENT_REQUIRED, .storage_offset = 0, .storage_size = sizeof large_integer};
+  const flags_schema_t integer_schema = {.options = &integer_option, .option_count = 1};
+  flags_context_t *integer_context = flags_create(&integer_schema, &large_integer, sizeof large_integer);
+  assert(integer_context && flags_set_text(integer_context, "integer", "9223372036854770000", FLAGS_SOURCE_COMMAND_LINE));
+  assert(large_integer == INT64_C(9223372036854770000));
+  flags_destroy(integer_context);
+  narrow_values_t narrow_values = {0};
+  const flags_option_spec_t narrow_options[] = {{.name = "value", .type = FLAGS_TYPE_INT64, .storage_offset = offsetof(narrow_values_t, value), .storage_size = sizeof narrow_values.value},
+                                                {.name = "ratio", .type = FLAGS_TYPE_DOUBLE, .storage_offset = offsetof(narrow_values_t, ratio), .storage_size = sizeof narrow_values.ratio}};
+  const flags_schema_t narrow_schema = {.options = narrow_options, .option_count = 2};
+  flags_context_t *narrow_context = flags_create(&narrow_schema, &narrow_values, sizeof narrow_values);
+  assert(narrow_context && flags_set_text(narrow_context, "value", "123456", FLAGS_SOURCE_CONFIG));
+  assert(flags_set_text(narrow_context, "ratio", "1.25", FLAGS_SOURCE_CONFIG));
+  assert(narrow_values.value == 123456 && narrow_values.ratio == 1.25f);
+  flags_destroy(narrow_context);
   values_t v = {0};
   static const char *const verbose_aliases[] = {"debug"};
   static const flags_option_spec_t o[] = {{.name = "verbose",
@@ -136,7 +194,28 @@ int main(void) {
   assert(!flags_set(c, "verbose", &precedence, FLAGS_SOURCE_ENVIRONMENT));
   assert(flags_parse(c, 2, (char *[]){"prog", "--debug"}, &r));
   assert(flags_was_explicitly_set(c, "verbose"));
-  FILE *generated = tmpfile();
+  bool dependency_values[2] = {false, false};
+  const flags_option_spec_t dependency_options[] = {
+      {.name = "secure", .type = FLAGS_TYPE_BOOL, .argument_requirement = FLAGS_ARGUMENT_NONE, .storage_offset = 0, .storage_size = sizeof(bool)},
+      {.name = "identity", .type = FLAGS_TYPE_BOOL, .argument_requirement = FLAGS_ARGUMENT_NONE, .storage_offset = sizeof(bool), .storage_size = sizeof(bool)}};
+  const flags_dependency_t dependency = {.option_name = "secure", .related_option = "identity", .type = FLAGS_DEPENDENCY_REQUIRES};
+  const flags_schema_t dependency_schema = {.options = dependency_options, .option_count = 2, .dependencies = &dependency, .dependency_count = 1};
+  flags_context_t *dependency_context = flags_create(&dependency_schema, dependency_values, sizeof dependency_values);
+  assert(dependency_context);
+  assert(flags_set_text(dependency_context, "secure", NULL, FLAGS_SOURCE_COMMAND_LINE));
+  assert(!flags_validate(dependency_context));
+  assert(flags_set_text(dependency_context, "identity", NULL, FLAGS_SOURCE_COMMAND_LINE));
+  assert(flags_validate(dependency_context));
+  flags_destroy(dependency_context);
+  int custom_value = 0;
+  const flags_option_spec_t custom_option = {.name = "custom", .type = FLAGS_TYPE_CUSTOM, .behavior = FLAGS_BEHAVIOR_CALLBACK, .storage_offset = 0, .storage_size = 0, .on_change = apply_custom_value};
+  const flags_schema_t custom_schema = {.options = &custom_option, .option_count = 1};
+  flags_context_t *custom_context = flags_create(&custom_schema, &custom_value, sizeof custom_value);
+  assert(custom_context && flags_set_text(custom_context, "custom", "42", FLAGS_SOURCE_COMMAND_LINE));
+  assert(custom_value == 42);
+  flags_destroy(custom_context);
+  const char *generated_path = "libflags-generated.txt";
+  FILE *generated = fopen(generated_path, "w+b");
   assert(generated);
   assert(flags_completion_write(&s, "example", FLAGS_COMPLETION_BASH, generated));
   fflush(generated);
@@ -147,6 +226,7 @@ int main(void) {
   assert(strstr(completion_text, "--debug") != NULL);
   assert(flags_manpage_write(&s, &(flags_manpage_metadata_t){.program_name = "example"}, generated));
   fclose(generated);
+  remove(generated_path);
   flags_command_t *root = flags_command_create(NULL, "ascii-chat", "root");
   flags_command_t *mirror = flags_command_create(root, "mirror", "mirror mode");
   assert(root && mirror && flags_command_set_default(root, mirror));
@@ -163,15 +243,38 @@ int main(void) {
   assert(flags_resolve_command_ex(root, 3, implicit_argv, &resolution));
   assert(resolution.command == mirror && resolution.used_implicit_command && !resolution.options_ended);
   flags_command_t *client = flags_command_create(root, "client", "client mode");
+  static const flags_option_spec_t shared_option = {.name = "shared"};
+  static const flags_option_spec_t override_option = {.name = "port", .description = "client port"};
+  assert(flags_command_add_option(root, &shared_option));
+  assert(flags_command_add_option(client, &override_option));
+  const flags_option_spec_t **command_options = NULL;
+  size_t command_option_count = 0;
+  assert(flags_command_collect_options(client, &command_options, &command_option_count));
+  assert(command_option_count == 2);
+  assert(command_options[0] == &override_option || command_options[1] == &override_option);
+  flags_command_free_options(command_options);
   char *explicit_argv[] = {"prog", "--port", "8080", "client"};
   assert(client && flags_resolve_command_ex(root, 4, explicit_argv, &resolution));
   assert(resolution.command == client && resolution.command_index == 3);
   assert(resolution.first_positional_index == 3);
+  static const flags_schema_t command_schema = {0};
+  flags_context_t *command_context = flags_create(&command_schema, NULL, 0);
+  assert(command_context);
+  assert(flags_set_logging(command_context, &(flags_logging_config_t){.callback = capture_command_diagnostic}));
+  char *late_binary_argv[] = {"prog", "client", "--port", "8080"};
+  assert(flags_resolve_command_ex(root, 4, late_binary_argv, &resolution));
+  command_diagnostic[0] = '\0';
+  assert(!flags_command_validate_order(command_context, root, 4, late_binary_argv, &resolution));
+  assert(strstr(command_diagnostic, "--port") && strstr(command_diagnostic, "client"));
+  flags_destroy(command_context);
   char *stdin_argv[] = {"prog", "-"};
   assert(flags_resolve_command_ex(root, 2, stdin_argv, &resolution));
   assert(resolution.command == mirror);
   assert(resolution.first_positional_index == 1);
   assert(!resolution.options_ended);
+  char *unknown_argv[] = {"prog", "unknown"};
+  assert(flags_resolve_command_ex(root, 2, unknown_argv, &resolution));
+  assert(resolution.command == root && !resolution.used_default_command);
   flags_command_destroy(root);
   bool enabled = false;
   uint64_t duration = 0;

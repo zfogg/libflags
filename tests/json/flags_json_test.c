@@ -11,7 +11,7 @@ typedef struct json_storage {
   char *name;
 } json_storage_t;
 
-int main(void) {
+int libflags_json_contract(void) {
   static const flags_option_spec_t options[] = {
       {.name = "enabled", .type = FLAGS_TYPE_BOOL, .storage_offset = offsetof(json_storage_t, enabled), .storage_size = sizeof(bool)},
       {.name = "count", .type = FLAGS_TYPE_INT64, .storage_offset = offsetof(json_storage_t, count), .storage_size = sizeof(int64_t)},

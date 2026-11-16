@@ -1,6 +1,43 @@
 #include <libflags/completions/completions.h>
 
 #include <string.h>
+#include <ctype.h>
+
+const char *flags_completion_shell_name(flags_completion_shell_t shell) {
+  switch (shell) {
+  case FLAGS_COMPLETION_BASH:
+    return "bash";
+  case FLAGS_COMPLETION_ZSH:
+    return "zsh";
+  case FLAGS_COMPLETION_FISH:
+    return "fish";
+  case FLAGS_COMPLETION_POWERSHELL:
+    return "powershell";
+  default:
+    return "unknown";
+  }
+}
+
+flags_completion_shell_t flags_completion_shell_parse(const char *name) {
+  if (!name)
+    return FLAGS_COMPLETION_UNKNOWN;
+  char lower[32];
+  size_t length = strlen(name);
+  if (length >= sizeof(lower))
+    return FLAGS_COMPLETION_UNKNOWN;
+  for (size_t i = 0; i < length; ++i)
+    lower[i] = (char)tolower((unsigned char)name[i]);
+  lower[length] = '\0';
+  if (!strcmp(lower, "bash"))
+    return FLAGS_COMPLETION_BASH;
+  if (!strcmp(lower, "zsh"))
+    return FLAGS_COMPLETION_ZSH;
+  if (!strcmp(lower, "fish"))
+    return FLAGS_COMPLETION_FISH;
+  if (!strcmp(lower, "powershell") || !strcmp(lower, "ps"))
+    return FLAGS_COMPLETION_POWERSHELL;
+  return FLAGS_COMPLETION_UNKNOWN;
+}
 
 static void write_bash_option_words(const flags_option_spec_t *option, FILE *output) {
   if (option->short_name)
@@ -39,6 +76,16 @@ bool flags_completion_write(const flags_schema_t *schema, const char *program, f
         fprintf(output, " -s %c", option->short_name);
       fprintf(output, " -d '%s'\n", option->description ? option->description : option->name);
     }
+  } else if (shell == FLAGS_COMPLETION_POWERSHELL) {
+    fprintf(output, "Register-ArgumentCompleter -CommandName %s -ScriptBlock {\n", program);
+    fprintf(output, "  param($commandName, $wordToComplete, $cursorPosition)\n");
+    fprintf(output, "  @(");
+    for (size_t i = 0; i < schema->option_count; ++i) {
+      if (i)
+        fputs(", ", output);
+      fprintf(output, "'--%s'", schema->options[i].name);
+    }
+    fprintf(output, ") | Where-Object { $_ -like \"$wordToComplete*\" }\n}\n");
   } else {
     return false;
   }

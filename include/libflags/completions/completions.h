@@ -14,8 +14,26 @@ typedef enum flags_completion_shell {
   /** Zsh completion function syntax. */
   FLAGS_COMPLETION_ZSH,
   /** Fish completion command syntax. */
-  FLAGS_COMPLETION_FISH
+  FLAGS_COMPLETION_FISH,
+  /** PowerShell argument completer syntax. */
+  FLAGS_COMPLETION_POWERSHELL,
+  /** No recognized shell dialect. */
+  FLAGS_COMPLETION_UNKNOWN
 } flags_completion_shell_t;
+
+/**
+ * @brief Returns the canonical shell name.
+ * @param shell Shell dialect.
+ * @return Lowercase shell name, or `"unknown"`.
+ */
+const char *flags_completion_shell_name(flags_completion_shell_t shell);
+
+/**
+ * @brief Parses a shell name without regard to case.
+ * @param name Shell name such as `bash`, `fish`, or `zsh`.
+ * @return Matching shell, or `FLAGS_COMPLETION_UNKNOWN`.
+ */
+flags_completion_shell_t flags_completion_shell_parse(const char *name);
 
 /**
  * @brief Writes a completion script using only schema metadata.

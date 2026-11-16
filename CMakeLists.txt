@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 if(NOT DEFINED CMAKE_C_COMPILER)
   set(CMAKE_C_COMPILER clang CACHE FILEPATH "C compiler")
 endif()
-project(libflags VERSION 0.1.0 LANGUAGES C)
+project(libflags VERSION 0.1.0 LANGUAGES C CXX)
 include(GNUInstallDirs)
 include(FetchContent)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/LibflagsDependencies.cmake)
@@ -16,8 +16,19 @@ set(LIBFLAGS_PCRE2_LIBRARIES "" CACHE STRING "PCRE2 libraries or targets supplie
 set(LIBFLAGS_YYJSON_INCLUDE_DIRS "" CACHE STRING "yyjson include directories supplied by the embedding project")
 set(LIBFLAGS_YYJSON_LIBRARIES "" CACHE STRING "yyjson libraries or targets supplied by the embedding project")
 option(LIBFLAGS_BUILD_TESTS "Build libflags tests" OFF)
+set(LIBFLAGS_CATCH2_SOURCE_DIR "" CACHE PATH "Existing Catch2 v3 source tree")
+set(LIBFLAGS_CATCH2_TAG "v3.16.1" CACHE STRING "Catch2 v3 tag used for libflags tests")
 if(LIBFLAGS_BUILD_TESTS)
   enable_testing()
+  if(LIBFLAGS_CATCH2_SOURCE_DIR AND EXISTS "${LIBFLAGS_CATCH2_SOURCE_DIR}/CMakeLists.txt")
+    add_subdirectory("${LIBFLAGS_CATCH2_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/catch2" EXCLUDE_FROM_ALL)
+  else()
+    FetchContent_Declare(catch2
+      GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+      GIT_TAG "${LIBFLAGS_CATCH2_TAG}"
+      SOURCE_DIR "${LIBFLAGS_DEPS_CACHE_ROOT}/catch2-src")
+    FetchContent_MakeAvailable(catch2)
+  endif()
 endif()
 if(NOT TARGET libplatform::libplatform AND NOT TARGET libplatform AND NOT TARGET libplatform-objects)
   # Embedders may add libplatform before libflags. Reuse that target instead of

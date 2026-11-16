@@ -8,6 +8,7 @@
 #include <libplatform/util/string.h>
 
 #include <ctype.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -66,13 +67,51 @@ static size_t flags_type_size(const flags_option_spec_t *option) {
 
 /** Returns the smallest storage width accepted for integer-compatible fields. */
 static size_t flags_type_min_size(const flags_option_spec_t *option) {
+  if ((option->behavior == FLAGS_BEHAVIOR_CALLBACK || option->behavior == FLAGS_BEHAVIOR_ACTION) && option->storage_size == 0)
+    return 0;
   if (option->type == FLAGS_TYPE_STRING && !option->dynamic_string)
     return sizeof(char);
   if (option->type == FLAGS_TYPE_INT64 || option->type == FLAGS_TYPE_PORT)
-    return sizeof(int32_t);
+    return sizeof(int8_t);
   if (option->type == FLAGS_TYPE_UINT64 || option->type == FLAGS_TYPE_DURATION || option->type == FLAGS_TYPE_SIZE || option->type == FLAGS_TYPE_RATE)
-    return sizeof(uint32_t);
+    return sizeof(uint8_t);
+  if (option->type == FLAGS_TYPE_DOUBLE)
+    return sizeof(float);
   return flags_type_size(option);
+}
+
+static void flags_store_value(void *destination, size_t size, flags_value_type_t type, const flags_value_t *value) {
+  if (type == FLAGS_TYPE_INT64 && size < sizeof(value->integer)) {
+    int32_t narrowed = (int32_t)value->integer;
+    memcpy(destination, &narrowed, size);
+  } else if (type == FLAGS_TYPE_UINT64 && size < sizeof(value->unsigned_integer)) {
+    uint32_t narrowed = (uint32_t)value->unsigned_integer;
+    memcpy(destination, &narrowed, size);
+  } else if ((type == FLAGS_TYPE_DOUBLE || type == FLAGS_TYPE_PERCENT || type == FLAGS_TYPE_DECIBEL) && size == sizeof(float)) {
+    float narrowed = (float)value->number;
+    memcpy(destination, &narrowed, sizeof(narrowed));
+  } else {
+    memcpy(destination, value, size);
+  }
+}
+
+static void flags_load_value(flags_value_t *value, const void *source, size_t size, flags_value_type_t type) {
+  memset(value, 0, sizeof(*value));
+  if (type == FLAGS_TYPE_INT64 && size < sizeof(value->integer)) {
+    int32_t narrowed = 0;
+    memcpy(&narrowed, source, size);
+    value->integer = narrowed;
+  } else if (type == FLAGS_TYPE_UINT64 && size < sizeof(value->unsigned_integer)) {
+    uint32_t narrowed = 0;
+    memcpy(&narrowed, source, size);
+    value->unsigned_integer = narrowed;
+  } else if ((type == FLAGS_TYPE_DOUBLE || type == FLAGS_TYPE_PERCENT || type == FLAGS_TYPE_DECIBEL) && size == sizeof(float)) {
+    float narrowed = 0.0f;
+    memcpy(&narrowed, source, sizeof(narrowed));
+    value->number = narrowed;
+  } else {
+    memcpy(value, source, size < sizeof(*value) ? size : sizeof(*value));
+  }
 }
 
 flags_context_t *flags_create(const flags_schema_t *schema, void *storage, size_t storage_size) {
@@ -124,7 +163,7 @@ void flags_destroy_preserving_storage(flags_context_t *context) {
   flags_destroy(context);
 }
 
-bool flags_validate(const flags_context_t *context) {
+static bool flags_validate_storage(const flags_context_t *context) {
   if (!context || !context->schema)
     return false;
   for (size_t i = 0; i < context->schema->option_count; ++i) {
@@ -135,8 +174,27 @@ bool flags_validate(const flags_context_t *context) {
   return true;
 }
 
+bool flags_validate(const flags_context_t *context) {
+  if (!flags_validate_storage(context))
+    return false;
+  for (size_t i = 0; i < context->schema->dependency_count; ++i) {
+    const flags_dependency_t *dependency = &context->schema->dependencies[i];
+    bool active = flags_was_explicitly_set(context, dependency->option_name);
+    bool related = flags_was_explicitly_set(context, dependency->related_option);
+    if (!active)
+      continue;
+    if ((dependency->type == FLAGS_DEPENDENCY_REQUIRES && !related) || (dependency->type == FLAGS_DEPENDENCY_CONFLICTS && related))
+      return false;
+  }
+  return true;
+}
+
+void *flags_context_storage(flags_context_t *context) {
+  return context ? context->storage : NULL;
+}
+
 bool flags_set_defaults(flags_context_t *context) {
-  if (!flags_validate(context))
+  if (!flags_validate_storage(context))
     return false;
   for (size_t i = 0; i < context->schema->option_count; ++i) {
     const flags_option_spec_t *option = &context->schema->options[i];
@@ -178,7 +236,7 @@ bool flags_classify_stream(const flags_option_spec_t *option, const char *text, 
 }
 
 bool flags_set(flags_context_t *context, const char *name, const flags_value_t *value, flags_source_t source) {
-  if (!context || !name || !value || !flags_validate(context))
+  if (!context || !name || !value || !flags_validate_storage(context))
     return false;
   size_t index = flags_find(context->schema, name);
   if (index == SIZE_MAX)
@@ -220,8 +278,8 @@ bool flags_set(flags_context_t *context, const char *name, const flags_value_t *
       length = option->storage_size - 1;
     memcpy(destination, text, length);
     ((char *)destination)[length] = '\0';
-  } else {
-    memcpy(destination, value, option->storage_size);
+  } else if (option->storage_size != 0) {
+    flags_store_value(destination, option->storage_size, option->type, value);
   }
   context->stats[index].explicitly_set = source != FLAGS_SOURCE_DEFAULT;
   context->stats[index].changed_from_default = source != FLAGS_SOURCE_DEFAULT;
@@ -248,7 +306,7 @@ bool flags_get(const flags_context_t *context, const char *name, flags_value_t *
   if (option->type == FLAGS_TYPE_STRING && !option->dynamic_string)
     out->string = source;
   else
-    memcpy(out, source, option->storage_size < sizeof(*out) ? option->storage_size : sizeof(*out));
+    flags_load_value(out, source, option->storage_size, option->type);
   ++((flags_context_t *)context)->stats[index].read_count;
   flags_now(&((flags_context_t *)context)->stats[index].last_read);
   mutex_unlock(&((flags_context_t *)context)->mutex);
@@ -285,9 +343,16 @@ static bool flags_parse_value(flags_context_t *context, const flags_option_spec_
   case FLAGS_TYPE_BOOL:
     return flags_parse_bool_relaxed(text, &out->boolean);
   case FLAGS_TYPE_INT64:
-  case FLAGS_TYPE_PORT:
+    errno = 0;
     out->integer = strtoll(text, &end, 10);
-    return end != text && *end == '\0' && (option->type != FLAGS_TYPE_PORT || (out->integer >= 0 && out->integer <= 65535));
+    return errno != ERANGE && end != text && *end == '\0';
+  case FLAGS_TYPE_PORT: {
+    uint16_t port = 0;
+    if (!flags_parse_port(text, &port))
+      return false;
+    out->integer = port;
+    return true;
+  }
   case FLAGS_TYPE_DURATION:
     return flags_parse_duration(text, &out->unsigned_integer);
   case FLAGS_TYPE_UINT64:
@@ -324,6 +389,13 @@ bool flags_parse_text(const flags_context_t *context, const char *name, const ch
 
 bool flags_set_text(flags_context_t *context, const char *name, const char *text, flags_source_t source) {
   flags_value_t value = {0};
+  const flags_option_spec_t *option = context && name ? flags_lookup(context->schema, name) : NULL;
+  if (!text && option && option->type == FLAGS_TYPE_BOOL && option->argument_requirement == FLAGS_ARGUMENT_NONE) {
+    if (!flags_get(context, name, &value))
+      return false;
+    value.boolean = !value.boolean;
+    return flags_set(context, name, &value, source);
+  }
   return flags_parse_text(context, name, text, &value) && flags_set(context, name, &value, source);
 }
 
@@ -400,6 +472,12 @@ bool flags_parse(flags_context_t *context, int argc, char **argv, flags_parse_re
       flags_value_t value = {.boolean = true};
       if (text && !flags_parse_value(context, option, text, &value))
         return false;
+      if (!text && option->type == FLAGS_TYPE_BOOL && option->default_operation == FLAGS_VALUE_TOGGLE) {
+        flags_value_t current = {0};
+        if (!flags_get(context, option->name, &current))
+          return false;
+        value.boolean = !current.boolean;
+      }
       if (!flags_set(context, option->name, &value, FLAGS_SOURCE_COMMAND_LINE))
         return false;
       continue;
@@ -572,13 +650,21 @@ bool flags_apply_environment(flags_context_t *context) {
     return false;
   for (size_t i = 0; i < context->schema->option_count; ++i) {
     char name[256];
-    if (!flags_environment_name(context, context->schema->options[i].name, name, sizeof(name)))
-      continue;
-    const char *text = platform_getenv(name);
+    const flags_option_spec_t *option = &context->schema->options[i];
+    const char *text = NULL;
+    if (flags_environment_name(context, option->name, name, sizeof(name)))
+      text = platform_getenv(name);
+    if (!text) {
+      for (size_t alias = 0; alias < option->environment_alias_count; ++alias) {
+        const char *candidate = option->environment_aliases[alias];
+        if (candidate && (text = platform_getenv(candidate)) != NULL)
+          break;
+      }
+    }
     if (!text)
       continue;
     flags_value_t value = {0};
-    if (!flags_parse_value(context, &context->schema->options[i], text, &value) || !flags_set(context, context->schema->options[i].name, &value, FLAGS_SOURCE_ENVIRONMENT))
+    if (!flags_parse_value(context, option, text, &value) || !flags_set(context, option->name, &value, FLAGS_SOURCE_ENVIRONMENT))
       return false;
   }
   return true;
@@ -610,7 +696,7 @@ uint64_t flags_runtime_revision(const flags_context_t *context) {
 }
 
 bool flags_runtime_apply_batch(flags_context_t *context, const flags_update_t *updates, size_t update_count, uint64_t expected_revision, flags_source_t source, uint64_t *new_revision) {
-  if (!context || (!updates && update_count != 0) || !flags_validate(context))
+  if (!context || (!updates && update_count != 0) || !flags_validate_storage(context))
     return false;
   const flags_option_spec_t **options = calloc(update_count, sizeof(*options));
   flags_value_t *old_values = calloc(update_count, sizeof(*old_values));
@@ -647,7 +733,16 @@ bool flags_runtime_apply_batch(flags_context_t *context, const flags_update_t *u
       }
     }
   }
-  if (mutex_lock(&context->mutex) != 0 || context->revision != expected_revision) {
+  if (mutex_lock(&context->mutex) != 0) {
+    for (size_t i = 0; i < update_count; ++i)
+      free(owned_strings[i]);
+    free(options);
+    free(old_values);
+    free(owned_strings);
+    return false;
+  }
+  if (context->revision != expected_revision) {
+    mutex_unlock(&context->mutex);
     for (size_t i = 0; i < update_count; ++i)
       free(owned_strings[i]);
     free(options);

@@ -39,11 +39,33 @@ static bool flags_config_write_string(FILE *output, const char *name, const char
 }
 
 static bool flags_config_apply_datum(flags_context_t *context, const flags_option_spec_t *option, toml_datum_t datum) {
+  if (option->type == FLAGS_TYPE_CUSTOM) {
+    char text[128];
+    switch (datum.type) {
+    case TOML_STRING:
+      return flags_was_explicitly_set(context, option->name) || flags_set_text(context, option->name, datum.u.s, FLAGS_SOURCE_CONFIG);
+    case TOML_INT64:
+      snprintf(text, sizeof(text), "%lld", (long long)datum.u.int64);
+      break;
+    case TOML_FP64:
+      snprintf(text, sizeof(text), "%.17g", datum.u.fp64);
+      break;
+    case TOML_BOOLEAN:
+      snprintf(text, sizeof(text), "%s", datum.u.boolean ? "true" : "false");
+      break;
+    default:
+      return false;
+    }
+    return flags_was_explicitly_set(context, option->name) || flags_set_text(context, option->name, text, FLAGS_SOURCE_CONFIG);
+  }
   flags_value_t value = {0};
   switch (datum.type) {
   case TOML_STRING:
+    /* TOML users commonly quote values that are numeric or boolean in the
+     * hand-written configuration.  Reuse the normal text parser so config,
+     * environment, and command-line sources accept the same value syntax. */
     if (option->type != FLAGS_TYPE_STRING)
-      return false;
+      return flags_was_explicitly_set(context, option->name) || flags_set_text(context, option->name, datum.u.s, FLAGS_SOURCE_CONFIG);
     value.string = datum.u.s;
     break;
   case TOML_INT64:
@@ -79,7 +101,7 @@ bool flags_config_load_toml(flags_context_t *context, const char *path) {
   const flags_schema_t *schema = flags_context_schema(context);
   for (size_t i = 0; i < schema->option_count; ++i) {
     const flags_option_spec_t *option = &schema->options[i];
-    toml_datum_t datum = toml_seek(result.toptab, option->name);
+    toml_datum_t datum = toml_seek(result.toptab, option->config_key ? option->config_key : option->name);
     if (datum.type != TOML_UNKNOWN && !flags_config_apply_datum(context, option, datum)) {
       success = false;
       break;
@@ -96,6 +118,7 @@ bool flags_config_write_toml(const flags_context_t *context, const char *path) {
   if (!output)
     return false;
   bool success = true;
+  char current_group[256] = {0};
   const flags_schema_t *schema = flags_context_schema(context);
   for (size_t i = 0; i < schema->option_count; ++i) {
     const flags_option_spec_t *option = &schema->options[i];
@@ -104,27 +127,48 @@ bool flags_config_write_toml(const flags_context_t *context, const char *path) {
       success = false;
       break;
     }
+    const char *key = option->config_key ? option->config_key : option->name;
+    const char *field = key;
+    if (option->config_key) {
+      const char *separator = strchr(key, '.');
+      if (separator) {
+        size_t group_length = (size_t)(separator - key);
+        if (group_length >= sizeof(current_group)) {
+          success = false;
+          break;
+        }
+        if (strncmp(current_group, key, group_length) != 0 || current_group[group_length] != '\0') {
+          memcpy(current_group, key, group_length);
+          current_group[group_length] = '\0';
+          if (fprintf(output, "\n[%s]\n", current_group) < 0) {
+            success = false;
+            break;
+          }
+        }
+        field = separator + 1;
+      }
+    }
     switch (option->type) {
     case FLAGS_TYPE_BOOL:
-      fprintf(output, "%s = %s\n", option->name, value.boolean ? "true" : "false");
+      fprintf(output, "%s = %s\n", field, value.boolean ? "true" : "false");
       break;
     case FLAGS_TYPE_INT64:
     case FLAGS_TYPE_PORT:
-      fprintf(output, "%s = %lld\n", option->name, (long long)value.integer);
+      fprintf(output, "%s = %lld\n", field, (long long)value.integer);
       break;
     case FLAGS_TYPE_UINT64:
     case FLAGS_TYPE_DURATION:
     case FLAGS_TYPE_SIZE:
     case FLAGS_TYPE_RATE:
-      fprintf(output, "%s = %llu\n", option->name, (unsigned long long)value.unsigned_integer);
+      fprintf(output, "%s = %llu\n", field, (unsigned long long)value.unsigned_integer);
       break;
     case FLAGS_TYPE_DOUBLE:
     case FLAGS_TYPE_PERCENT:
     case FLAGS_TYPE_DECIBEL:
-      fprintf(output, "%s = %.17g\n", option->name, value.number);
+      fprintf(output, "%s = %.17g\n", field, value.number);
       break;
     default:
-      if (!flags_config_write_string(output, option->name, value.string))
+      if (!flags_config_write_string(output, field, value.string))
         success = false;
       break;
     }

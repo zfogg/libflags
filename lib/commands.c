@@ -1,7 +1,10 @@
 #include <libflags/commands.h>
 #include <libplatform/util/string.h>
 
+#include "internal/context.h"
+
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 /** Private command-tree node. */
@@ -74,6 +77,55 @@ bool flags_command_add_option(flags_command_t *command, const flags_option_spec_
   return true;
 }
 
+static bool flags_command_collect_into(const flags_command_t *command, const flags_option_spec_t ***items, size_t *count, size_t *capacity) {
+  if (!command)
+    return true;
+  if (!flags_command_collect_into(command->parent, items, count, capacity))
+    return false;
+  for (size_t i = 0; i < command->option_count; ++i) {
+    const flags_option_spec_t *candidate = command->options[i];
+    size_t existing = SIZE_MAX;
+    for (size_t j = 0; j < *count; ++j)
+      if (!strcmp((*items)[j]->name, candidate->name)) {
+        existing = j;
+        break;
+      }
+    if (existing != SIZE_MAX) {
+      (*items)[existing] = candidate;
+      continue;
+    }
+    if (*count == *capacity) {
+      size_t next = *capacity ? *capacity * 2 : 8;
+      const flags_option_spec_t **grown = realloc((void *)*items, next * sizeof(*grown));
+      if (!grown)
+        return false;
+      *items = grown;
+      *capacity = next;
+    }
+    (*items)[(*count)++] = candidate;
+  }
+  return true;
+}
+
+bool flags_command_collect_options(const flags_command_t *command, const flags_option_spec_t ***options, size_t *count) {
+  if (!command || !options || !count)
+    return false;
+  *options = NULL;
+  *count = 0;
+  size_t capacity = 0;
+  if (!flags_command_collect_into(command, options, count, &capacity)) {
+    free((void *)*options);
+    *options = NULL;
+    *count = 0;
+    return false;
+  }
+  return true;
+}
+
+void flags_command_free_options(const flags_option_spec_t **options) {
+  free((void *)options);
+}
+
 bool flags_command_set_handler(flags_command_t *command, int (*handler)(flags_context_t *, void *), void *user_data) {
   if (!command)
     return false;
@@ -130,6 +182,32 @@ static const flags_option_spec_t *find_option(flags_command_t *command, const ch
   return NULL;
 }
 
+static const flags_option_spec_t *find_direct_option(const flags_command_t *command, const char *name, size_t length) {
+  if (!command)
+    return NULL;
+  for (size_t i = 0; i < command->option_count; ++i) {
+    const flags_option_spec_t *option = command->options[i];
+    if ((strlen(option->name) == length && strncmp(option->name, name, length) == 0) || (length == 1 && option->short_name == name[0]))
+      return option;
+  }
+  return NULL;
+}
+
+static void report_order_error(flags_context_t *context, const char *option_name, const char *command_name) {
+  if (!context || !context->logging.callback)
+    return;
+  char message[512];
+  snprintf(message, sizeof(message), "Binary-level option '--%s' must appear before the mode '%s', not after it", option_name, command_name);
+  flags_log_event_t event = {
+      .message = message,
+      .option_name = option_name,
+      .command_name = command_name,
+      .source = FLAGS_SOURCE_COMMAND_LINE,
+      .revision = context->revision,
+  };
+  context->logging.callback(&event, context->logging.user_data);
+}
+
 bool flags_resolve_command_ex(flags_command_t *root, int argc, char **argv, flags_command_resolution_t *result) {
   if (!root || argc < 0 || (argc && !argv) || !result)
     return false;
@@ -167,17 +245,48 @@ bool flags_resolve_command_ex(flags_command_t *root, int argc, char **argv, flag
     }
     if (result->first_positional_index < 0)
       result->first_positional_index = i;
+    if (command == root && root->default_command && !strcmp(argv[i], "-")) {
+      command = root->default_command;
+      continue;
+    }
     flags_command_t *child = find_child(command, argv[i]);
-    if (!child)
+    if (!child) {
+      result->used_default_command = false;
       break;
+    }
     command = child;
     result->command_index = i;
     result->used_default_command = false;
   }
-  if (command == root && root->default_command)
+  if (command == root && root->default_command && (result->first_positional_index < 0 || ended))
     command = root->default_command;
   result->command = command;
   result->options_ended = ended;
+  return true;
+}
+
+bool flags_command_validate_order(flags_context_t *context, const flags_command_t *root, int argc, char **argv, const flags_command_resolution_t *resolution) {
+  if (!root || argc < 0 || (argc > 0 && !argv) || !resolution || resolution->command_index < 0)
+    return true;
+
+  for (int i = resolution->command_index + 1; i < argc; ++i) {
+    const char *argument = argv[i];
+    if (!argument || argument[0] != '-' || argument[1] == '\0' || !strcmp(argument, "--"))
+      continue;
+    const char *name = argument + 1;
+    if (*name == '-')
+      ++name;
+    const char *equals = strchr(name, '=');
+    size_t length = equals ? (size_t)(equals - name) : strlen(name);
+    if (find_direct_option(root, name, length)) {
+      char option_name[128];
+      size_t copy_length = length < sizeof(option_name) - 1 ? length : sizeof(option_name) - 1;
+      memcpy(option_name, name, copy_length);
+      option_name[copy_length] = '\0';
+      report_order_error(context, option_name, flags_command_name(resolution->command));
+      return false;
+    }
+  }
   return true;
 }
 

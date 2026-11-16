@@ -1,3 +1,5 @@
 /build/
 /build-*/
+.deps-cache/
+docs/_build/
 docs/generated/

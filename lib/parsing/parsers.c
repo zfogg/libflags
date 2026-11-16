@@ -1,8 +1,32 @@
 #include <libflags/values.h>
 
 #include <ctype.h>
+#include <errno.h>
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
+
+bool flags_parse_int32(const char *text, int32_t *out) {
+  if (!text || !*text || !out)
+    return false;
+  char *end = NULL;
+  long value = strtol(text, &end, 10);
+  if (end == text || *end != '\0' || value < INT32_MIN || value > INT32_MAX)
+    return false;
+  *out = (int32_t)value;
+  return true;
+}
+
+bool flags_parse_port(const char *text, uint16_t *out) {
+  if (!text || !*text || !out)
+    return false;
+  char *end = NULL;
+  long value = strtol(text, &end, 10);
+  if (end == text || *end != '\0' || value < 0 || value > 65535)
+    return false;
+  *out = (uint16_t)value;
+  return true;
+}
 
 static char *trimmed_duplicate(const char *start, size_t length) {
   while (length && isspace((unsigned char)*start))
@@ -108,6 +132,18 @@ bool flags_parse_bool_relaxed(const char *text, bool *out) {
   return false;
 }
 
+bool flags_parse_double(const char *text, double *out) {
+  if (!text || !*text || !out)
+    return false;
+  char *end = NULL;
+  errno = 0;
+  double value = strtod(text, &end);
+  if (end == text || *end != '\0' || errno == ERANGE || !isfinite(value))
+    return false;
+  *out = value;
+  return true;
+}
+
 static bool parse_number(const char *text, double *number, const char **suffix) {
   char *end = NULL;
   *number = strtod(text, &end);
@@ -173,6 +209,18 @@ bool flags_parse_enum(const char *text, const char *const *values, size_t count,
   for (size_t i = 0; i < count; ++i) {
     if (!strcmp(text, values[i])) {
       *out = i;
+      return true;
+    }
+  }
+  return false;
+}
+
+bool flags_parse_lookup(const char *text, const flags_lookup_entry_t *entries, int *out) {
+  if (!text || !entries || !out)
+    return false;
+  for (size_t i = 0; entries[i].name; ++i) {
+    if (equal_case_insensitive(text, entries[i].name)) {
+      *out = entries[i].value;
       return true;
     }
   }

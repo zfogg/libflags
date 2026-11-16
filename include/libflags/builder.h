@@ -24,6 +24,10 @@ void flags_schema_builder_destroy(flags_schema_builder_t *builder);
  * @return Whether the descriptor was appended.
  * @note String members, enum tables, callbacks, and callback data remain
  * application-owned and must outlive the builder's schema view.
+ * @note Generic presentation metadata such as `description` and `group` is
+ *       copied as pointers as well; applications retain ownership of it.
+ * @note The `config_key` string is copied and owned by the builder, so callers
+ *       may provide a temporary generated key.
  */
 bool flags_schema_builder_add_option(flags_schema_builder_t *builder, const flags_option_spec_t *option);
 /**
@@ -33,6 +37,13 @@ bool flags_schema_builder_add_option(flags_schema_builder_t *builder, const flag
  * @return Whether the descriptor was appended.
  */
 bool flags_schema_builder_add_positional(flags_schema_builder_t *builder, const flags_positional_spec_t *positional);
+/**
+ * @brief Appends a dependency rule.
+ * @param builder Builder to update.
+ * @param dependency Rule to copy.
+ * @return Whether the rule was appended.
+ */
+bool flags_schema_builder_add_dependency(flags_schema_builder_t *builder, const flags_dependency_t *dependency);
 /**
  * @brief Selects the ordering policy used by the resulting schema.
  * @param builder Builder to update.
