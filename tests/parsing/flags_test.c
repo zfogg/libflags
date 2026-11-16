@@ -58,7 +58,7 @@ static bool count_positional(flags_context_t *context, const char *text, void *u
 
 int main(void) {
   const char *suggestion_candidates[] = {"server", "serve", "client", NULL};
-  assert(!strcmp(flags_levenshtein_find_similar("serer", suggestion_candidates), "server"));
+  assert(!strcmp(flags_levenshtein_find_similar("servr", suggestion_candidates), "server"));
 
   char key[64];
   assert(flags_config_make_toml_key("Network", "bind-address", key, sizeof(key)));
