@@ -56,7 +56,7 @@ static bool count_positional(flags_context_t *context, const char *text, void *u
   return true;
 }
 
-int main(void) {
+int libflags_parsing_contract(void) {
   const char *suggestion_candidates[] = {"server", "serve", "client", NULL};
   assert(!strcmp(flags_levenshtein_find_similar("servr", suggestion_candidates), "server"));
 
