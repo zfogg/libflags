@@ -10,7 +10,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/LibflagsTarget.cmake)
 set(LIBFLAGS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
 set(LIBFLAGS_DEPS_CACHE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/.deps-cache" CACHE PATH "Shared source cache for libflags dependencies")
-set(LIBFLAGS_LIBPLATFORM_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/deps/libplatform" CACHE PATH
+set(LIBFLAGS_LIBPLATFORM_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/vendor/libplatform" CACHE PATH
     "Existing libplatform source tree")
 set(LIBFLAGS_PCRE2_INCLUDE_DIRS "" CACHE STRING "PCRE2 include directories supplied by the embedding project")
 set(LIBFLAGS_PCRE2_LIBRARIES "" CACHE STRING "PCRE2 libraries or targets supplied by the embedding project")
