@@ -1,3 +1,18 @@
 [submodule "deps/libplatform"]
-	path = vendor/libplatform
+	path = deps/libplatform
 	url = https://github.com/zfogg/libplatform.git
+[submodule "deps/pcre2"]
+	path = deps/pcre2
+	url = https://github.com/PCRE2Project/pcre2.git
+[submodule "deps/yyjson"]
+	path = deps/yyjson
+	url = https://github.com/ibireme/yyjson.git
+[submodule "deps/tomlc17"]
+	path = deps/tomlc17
+	url = https://github.com/cktan/tomlc17.git
+[submodule "deps/catch2"]
+	path = deps/catch2
+	url = https://github.com/catchorg/Catch2.git
+[submodule "deps/utf8proc"]
+	path = deps/utf8proc
+	url = https://github.com/JuliaStrings/utf8proc.git

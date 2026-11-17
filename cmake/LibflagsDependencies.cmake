@@ -31,11 +31,8 @@ function(libflags_configure_yyjson)
   set(YYJSON_BUILD_TESTS OFF CACHE BOOL "Disable yyjson tests in libflags" FORCE)
   set(YYJSON_BUILD_MISC OFF CACHE BOOL "Disable yyjson tools in libflags" FORCE)
   set(YYJSON_BUILD_DOC OFF CACHE BOOL "Disable yyjson documentation in libflags" FORCE)
-  FetchContent_Declare(libflags_yyjson
-    GIT_REPOSITORY https://github.com/ibireme/yyjson.git
-    GIT_TAG 0.12.0
-    SOURCE_DIR "${LIBFLAGS_DEPS_CACHE_ROOT}/yyjson-src")
-  FetchContent_MakeAvailable(libflags_yyjson)
+  set(libflags_yyjson_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../deps/yyjson")
+  add_subdirectory("${libflags_yyjson_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/yyjson" EXCLUDE_FROM_ALL)
   if(NOT TARGET yyjson)
     message(FATAL_ERROR "yyjson was fetched, but no yyjson target was created")
   endif()
@@ -93,11 +90,8 @@ function(libflags_configure_pcre2)
   set(PCRE2_BUILD_PCRE2_16 OFF CACHE BOOL "Disable PCRE2 16-bit support" FORCE)
   set(PCRE2_BUILD_PCRE2_32 OFF CACHE BOOL "Disable PCRE2 32-bit support" FORCE)
   set(PCRE2_SUPPORT_JIT ON CACHE BOOL "Build PCRE2 JIT support" FORCE)
-  FetchContent_Declare(libflags_pcre2
-    GIT_REPOSITORY https://github.com/PCRE2Project/pcre2.git
-    GIT_TAG pcre2-10.44
-    SOURCE_DIR "${LIBFLAGS_DEPS_CACHE_ROOT}/pcre2-src")
-  FetchContent_MakeAvailable(libflags_pcre2)
+  set(libflags_pcre2_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../deps/pcre2")
+  add_subdirectory("${libflags_pcre2_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/pcre2" EXCLUDE_FROM_ALL)
   if(TARGET pcre2-8-static)
     set(LIBFLAGS_PCRE2_TARGET pcre2-8-static PARENT_SCOPE)
   elseif(TARGET pcre2-8)
