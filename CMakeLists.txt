@@ -9,7 +9,11 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/LibflagsDependencies.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/LibflagsTarget.cmake)
 set(LIBFLAGS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
-set(LIBFLAGS_DEPS_CACHE_ROOT "${LIBFLAGS_SOURCE_DIR}/.deps-cache" CACHE PATH "Shared source cache for libflags dependencies")
+# Embedders may provide a shared dependency source cache. Standalone libflags
+# keeps generated/fetched dependency state in its own build tree instead of
+# assuming an embedding project's cache layout.
+set(LIBFLAGS_DEPS_CACHE_ROOT "${CMAKE_BINARY_DIR}/_deps" CACHE PATH
+    "Dependency source cache used when libflags is built standalone")
 set(LIBFLAGS_LIBPLATFORM_SOURCE_DIR "${LIBFLAGS_SOURCE_DIR}/deps/libplatform" CACHE PATH
     "Existing libplatform source tree")
 set(LIBFLAGS_PCRE2_INCLUDE_DIRS "" CACHE STRING "PCRE2 include directories supplied by the embedding project")
