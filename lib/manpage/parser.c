@@ -1,4 +1,5 @@
 #include <libflags/manpage/parser.h>
+#include <libplatform/filesystem.h>
 
 #include <ctype.h>
 #include <stdlib.h>
@@ -180,7 +181,7 @@ fail:
 bool flags_manpage_parser_parse_memory(const char *content, size_t length, flags_manpage_section_t **sections, size_t *count) {
   if (!content || !length)
     return false;
-  FILE *input = tmpfile();
+  FILE *input = platform_tmpfile();
   if (!input || fwrite(content, 1, length, input) != length || fseek(input, 0, SEEK_SET) != 0) {
     if (input)
       fclose(input);
@@ -194,7 +195,7 @@ bool flags_manpage_parser_parse_memory(const char *content, size_t length, flags
 bool flags_manpage_parser_parse_file(const char *path, flags_manpage_section_t **sections, size_t *count) {
   if (!path || !sections || !count)
     return false;
-  FILE *input = fopen(path, "rb");
+  FILE *input = platform_fopen("libflags_manpage", path, "rb");
   if (!input)
     return false;
   bool ok = flags_manpage_parser_parse(input, sections, count);

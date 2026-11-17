@@ -1,4 +1,5 @@
 #include <libflags/config.h>
+#include <libplatform/filesystem.h>
 #include <tomlc17.h>
 
 #include <stdio.h>
@@ -114,7 +115,7 @@ bool flags_config_load_toml(flags_context_t *context, const char *path) {
 bool flags_config_write_toml(const flags_context_t *context, const char *path) {
   if (!context || !path)
     return false;
-  FILE *output = strcmp(path, "-") == 0 ? stdout : fopen(path, "wb");
+  FILE *output = strcmp(path, "-") == 0 ? stdout : platform_fopen("libflags_config", path, "wb");
   if (!output)
     return false;
   bool success = true;

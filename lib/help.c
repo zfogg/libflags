@@ -1,5 +1,6 @@
 #include <libflags/help.h>
 #include <libflags/format.h>
+#include <libplatform/system.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
@@ -60,7 +61,7 @@ bool flags_help_write_options(const flags_schema_t *schema, const char *program_
     const char *placeholder = flags_help_placeholder(option);
     if (placeholder && (size_t)written + strlen(placeholder) + 1 < sizeof(spelling)) {
       spelling[written++] = ' ';
-      strcpy(spelling + written, placeholder);
+      platform_strcpy(spelling + written, sizeof(spelling) - (size_t)written, placeholder);
     }
     char default_value[128];
     const char *default_text = flags_help_default(option, default_value, sizeof(default_value));
