@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
+cmake_policy(SET CMP0131 NEW)
 if(NOT DEFINED CMAKE_C_COMPILER)
   set(CMAKE_C_COMPILER clang CACHE FILEPATH "C compiler")
 endif()
