@@ -461,8 +461,11 @@ bool flags_parse(flags_context_t *context, int argc, char **argv, flags_parse_re
         return false;
       const char *text = NULL;
       if (option->argument_requirement != FLAGS_ARGUMENT_NONE) {
-        if (argument[1] == '-' && argument[2] == '=')
-          text = argument + 3;
+        if (argument[1] == '-') {
+          const char *equals = strchr(argument + 2, '=');
+          if (equals)
+            text = equals + 1;
+        }
         else if (i + 1 < argc && strcmp(argv[i + 1], "--") != 0) {
           text = argv[++i];
         } else if (option->argument_requirement == FLAGS_ARGUMENT_REQUIRED) {
