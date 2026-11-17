@@ -20,4 +20,7 @@ set(LIBFLAGS_SOURCES
 
 add_library(flags ${LIBFLAGS_SOURCES})
 add_library(libflags::flags ALIAS flags)
+set_target_properties(flags PROPERTIES
+  POSITION_INDEPENDENT_CODE ON
+  WINDOWS_EXPORT_ALL_SYMBOLS ON)
 libflags_configure_target(flags)
