@@ -31,6 +31,9 @@ typedef struct flags_command_resolution {
   int first_positional_index;
 } flags_command_resolution_t;
 
+/** @brief Classifies an option while constructing argv for a command. */
+typedef bool (*flags_command_option_classifier_fn)(const char *argument, bool *takes_required_argument, bool *takes_optional_argument, void *user_data);
+
 /**
  * @brief Creates a command below an optional parent command.
  * @param parent Optional parent command.
@@ -77,9 +80,10 @@ void flags_command_free_options(const flags_option_spec_t **options);
  */
 bool flags_command_set_handler(flags_command_t *command, int (*handler)(flags_context_t *context, void *user_data), void *user_data);
 /**
- * @brief Marks a descendant as the root's default command.
+ * @brief Sets the root's default resolution target.
  * @param root Root command.
- * @param command Default descendant.
+ * @param command Default descendant, or the root itself when the application
+ *                has an implicit root mode rather than a named command.
  * @return Whether configuration succeeded.
  */
 bool flags_command_set_default(flags_command_t *root, flags_command_t *command);
@@ -137,3 +141,20 @@ const char *flags_command_name(const flags_command_t *command);
  * @return Borrowed parent command.
  */
 flags_command_t *flags_command_parent(const flags_command_t *command);
+
+/**
+ * @brief Builds argv for a resolved command while removing root-level options.
+ * @param argc Original argument count.
+ * @param argv Original argument vector.
+ * @param command_index Resolved command index, or -1 for the root command.
+ * @param classify Option classifier supplied by the application.
+ * @param user_data Classifier context.
+ * @param out_argc Receives the output count.
+ * @param out_argv Receives an allocated shallow-copy vector.
+ * @return Whether the output vector was built.
+ */
+bool flags_command_build_argv(int argc, char **argv, int command_index, flags_command_option_classifier_fn classify, void *user_data, int *out_argc, char ***out_argv);
+
+/** @brief Frees a vector returned by flags_command_build_argv(). */
+void flags_command_free_argv(char **argv);
+

@@ -308,3 +308,36 @@ const char *flags_command_name(const flags_command_t *command) {
 flags_command_t *flags_command_parent(const flags_command_t *command) {
   return command ? command->parent : NULL;
 }
+
+bool flags_command_build_argv(int argc, char **argv, int command_index, flags_command_option_classifier_fn classify, void *user_data, int *out_argc, char ***out_argv) {
+  if (argc < 1 || !argv || !out_argc || !out_argv || command_index >= argc)
+    return false;
+  char **result = calloc((size_t)argc + 1, sizeof(*result));
+  if (!result)
+    return false;
+  int count = 1;
+  result[0] = argv[0];
+  for (int i = 1; i < argc; ++i) {
+    if (i == command_index)
+      continue;
+    bool required = false;
+    bool optional = false;
+    if (classify && classify(argv[i], &required, &optional, user_data)) {
+      if (!strchr(argv[i], '=') && required && i + 1 < argc)
+        ++i;
+      else if (!strchr(argv[i], '=') && optional && i + 1 < argc && argv[i + 1][0] != '-')
+        ++i;
+      continue;
+    }
+    result[count++] = argv[i];
+  }
+  result[count] = NULL;
+  *out_argc = count;
+  *out_argv = result;
+  return true;
+}
+
+void flags_command_free_argv(char **argv) {
+  free(argv);
+}
+

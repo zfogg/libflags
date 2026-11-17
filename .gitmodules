@@ -1,0 +1,3 @@
+[submodule "deps/libplatform"]
+	path = deps/libplatform
+	url = https://github.com/zfogg/libplatform.git
