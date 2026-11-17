@@ -72,7 +72,9 @@ else()
 endif()
 unset(_libflags_library_type)
 
-set_target_properties(libflags-tomlc17 PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(libflags-tomlc17 PROPERTIES
+  POSITION_INDEPENDENT_CODE ON
+  WINDOWS_EXPORT_ALL_SYMBOLS ON)
 libflags_configure_pcre2()
 libflags_configure_yyjson()
 if(NOT LIBFLAGS_UTF8PROC_TARGET)
