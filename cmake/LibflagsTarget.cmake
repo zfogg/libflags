@@ -4,7 +4,12 @@ function(libflags_configure_target target)
       $<BUILD_INTERFACE:${LIBFLAGS_SOURCE_DIR}/include>
       $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
   target_compile_features(${target} PUBLIC c_std_11)
-  target_link_libraries(${target} PUBLIC libplatform::libplatform libflags-tomlc17)
+  # These implementation dependencies must remain transitive for static
+  # consumers, but their usage requirements must not become compile includes
+  # for libflags itself (especially host /usr/include paths in musl builds).
+  target_link_libraries(${target} PUBLIC
+    "$<LINK_ONLY:libplatform::libplatform>"
+    "$<LINK_ONLY:libflags-tomlc17>")
   if(LIBFLAGS_UTF8PROC_TARGET AND TARGET "${LIBFLAGS_UTF8PROC_TARGET}")
     target_link_libraries(${target} PUBLIC "${LIBFLAGS_UTF8PROC_TARGET}")
   endif()
