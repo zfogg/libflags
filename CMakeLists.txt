@@ -9,14 +9,14 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/LibflagsDependencies.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/LibflagsTarget.cmake)
 set(LIBFLAGS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
-set(LIBFLAGS_DEPS_CACHE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/.deps-cache" CACHE PATH "Shared source cache for libflags dependencies")
-set(LIBFLAGS_LIBPLATFORM_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/deps/libplatform" CACHE PATH
+set(LIBFLAGS_DEPS_CACHE_ROOT "${LIBFLAGS_SOURCE_DIR}/.deps-cache" CACHE PATH "Shared source cache for libflags dependencies")
+set(LIBFLAGS_LIBPLATFORM_SOURCE_DIR "${LIBFLAGS_SOURCE_DIR}/deps/libplatform" CACHE PATH
     "Existing libplatform source tree")
 set(LIBFLAGS_PCRE2_INCLUDE_DIRS "" CACHE STRING "PCRE2 include directories supplied by the embedding project")
 set(LIBFLAGS_PCRE2_LIBRARIES "" CACHE STRING "PCRE2 libraries or targets supplied by the embedding project")
 set(LIBFLAGS_YYJSON_INCLUDE_DIRS "" CACHE STRING "yyjson include directories supplied by the embedding project")
 set(LIBFLAGS_YYJSON_LIBRARIES "" CACHE STRING "yyjson libraries or targets supplied by the embedding project")
-set(LIBFLAGS_UTF8PROC_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/deps/utf8proc" CACHE PATH
+set(LIBFLAGS_UTF8PROC_SOURCE_DIR "${LIBFLAGS_SOURCE_DIR}/deps/utf8proc" CACHE PATH
     "Existing utf8proc source tree")
 set(LIBFLAGS_UTF8PROC_TARGET "" CACHE STRING
     "utf8proc target supplied by the embedding project")
@@ -32,7 +32,7 @@ if(LIBFLAGS_BUILD_TESTS)
   if(LIBFLAGS_CATCH2_SOURCE_DIR AND EXISTS "${LIBFLAGS_CATCH2_SOURCE_DIR}/CMakeLists.txt")
     add_subdirectory("${LIBFLAGS_CATCH2_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/catch2" EXCLUDE_FROM_ALL)
   else()
-    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/deps/catch2" "${CMAKE_CURRENT_BINARY_DIR}/catch2" EXCLUDE_FROM_ALL)
+    add_subdirectory("${LIBFLAGS_SOURCE_DIR}/deps/catch2" "${CMAKE_CURRENT_BINARY_DIR}/catch2" EXCLUDE_FROM_ALL)
   endif()
 endif()
 if(NOT TARGET libplatform::libplatform AND NOT TARGET libplatform AND NOT TARGET libplatform-objects)
@@ -55,7 +55,7 @@ if(NOT TARGET libplatform::libplatform AND NOT TARGET libplatform AND NOT TARGET
     FetchContent_MakeAvailable(libplatform)
   endif()
 endif()
-set(LIBFLAGS_TOMLC17_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/deps/tomlc17" CACHE PATH "Existing tomlc17 source tree")
+set(LIBFLAGS_TOMLC17_SOURCE_DIR "${LIBFLAGS_SOURCE_DIR}/deps/tomlc17" CACHE PATH "Existing tomlc17 source tree")
 if(LIBFLAGS_TOMLC17_SOURCE_DIR AND EXISTS "${LIBFLAGS_TOMLC17_SOURCE_DIR}/src/tomlc17.c")
   add_library(libflags-tomlc17 ${_libflags_library_type} "${LIBFLAGS_TOMLC17_SOURCE_DIR}/src/tomlc17.c")
   target_include_directories(libflags-tomlc17 PUBLIC "${LIBFLAGS_TOMLC17_SOURCE_DIR}/src")
