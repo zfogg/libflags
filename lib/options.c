@@ -456,7 +456,14 @@ bool flags_parse(flags_context_t *context, int argc, char **argv, flags_parse_re
       const char *name = argument + 1;
       if (*name == '-')
         ++name;
-      const flags_option_spec_t *option = flags_lookup(context->schema, name);
+      char option_name[256];
+      const char *equals = strchr(name, '=');
+      size_t option_name_length = equals ? (size_t)(equals - name) : strlen(name);
+      if (option_name_length >= sizeof(option_name))
+        return false;
+      memcpy(option_name, name, option_name_length);
+      option_name[option_name_length] = '\0';
+      const flags_option_spec_t *option = flags_lookup(context->schema, option_name);
       if (!option)
         return false;
       const char *text = NULL;
