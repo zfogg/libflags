@@ -26,7 +26,7 @@ static size_t flags_utf8_length(const char *value) {
   return length;
 }
 
-size_t flags_levenshtein_n(const char *a, size_t a_length, const char *b, size_t b_length) {
+size_t levenshtein_n(const char *a, size_t a_length, const char *b, size_t b_length) {
   if (!a || !b)
     return SIZE_MAX;
   size_t *row = calloc(a_length + 1, sizeof(*row));
@@ -52,7 +52,7 @@ size_t flags_levenshtein_n(const char *a, size_t a_length, const char *b, size_t
   return result;
 }
 
-size_t flags_levenshtein(const char *a, const char *b) {
+size_t levenshtein(const char *a, const char *b) {
   if (!a || !b)
     return SIZE_MAX;
 
@@ -116,13 +116,13 @@ size_t flags_levenshtein(const char *a, const char *b) {
   return result;
 }
 
-const char *flags_levenshtein_find_similar(const char *unknown, const char *const *candidates) {
+const char *levenshtein_find_similar(const char *unknown, const char *const *candidates) {
   if (!unknown || !candidates)
     return NULL;
   const char *best = NULL;
   size_t best_distance = FLAGS_LEVENSHTEIN_SUGGESTION_THRESHOLD + 1;
   for (size_t i = 0; candidates[i]; ++i) {
-    const size_t distance = flags_levenshtein(unknown, candidates[i]);
+    const size_t distance = levenshtein(unknown, candidates[i]);
     if (distance < best_distance) {
       best = candidates[i];
       best_distance = distance;

@@ -7,7 +7,7 @@
 #pragma once
 #include <libflags/flags.h>
 
-/** @brief Maximum distance accepted by flags_levenshtein_find_similar(). */
+/** @brief Maximum distance accepted by levenshtein_find_similar(). */
 #define FLAGS_LEVENSHTEIN_SUGGESTION_THRESHOLD 4
 
 /**
@@ -16,7 +16,7 @@
  * @param b Second string.
  * @return Edit distance, or `SIZE_MAX` for invalid input.
  */
-size_t flags_levenshtein(const char *a, const char *b);
+size_t levenshtein(const char *a, const char *b);
 
 /**
  * @brief Computes edit distance for explicit byte lengths.
@@ -26,7 +26,7 @@ size_t flags_levenshtein(const char *a, const char *b);
  * @param b_length Second string length.
  * @return Edit distance, or `SIZE_MAX` for invalid input.
  */
-size_t flags_levenshtein_n(const char *a, size_t a_length, const char *b, size_t b_length);
+size_t levenshtein_n(const char *a, size_t a_length, const char *b, size_t b_length);
 
 /**
  * @brief Finds the closest candidate within the suggestion threshold.
@@ -34,4 +34,4 @@ size_t flags_levenshtein_n(const char *a, size_t a_length, const char *b, size_t
  * @param candidates NULL-terminated candidate list.
  * @return Borrowed best match, or NULL when no candidate is close enough.
  */
-const char *flags_levenshtein_find_similar(const char *unknown, const char *const *candidates);
+const char *levenshtein_find_similar(const char *unknown, const char *const *candidates);
