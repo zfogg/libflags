@@ -8,6 +8,10 @@ function(libflags_configure_target target)
     target_include_directories(${target} PUBLIC
       "${LIBFLAGS_LIBPLATFORM_SOURCE_DIR}/include")
   endif()
+  if(LIBFLAGS_TOMLC17_SOURCE_DIR AND EXISTS "${LIBFLAGS_TOMLC17_SOURCE_DIR}/src")
+    target_include_directories(${target} PUBLIC
+      "${LIBFLAGS_TOMLC17_SOURCE_DIR}/src")
+  endif()
   # These implementation dependencies must remain transitive for static
   # consumers, but their usage requirements must not become compile includes
   # for libflags itself (especially host /usr/include paths in musl builds).
