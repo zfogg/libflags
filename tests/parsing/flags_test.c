@@ -98,6 +98,25 @@ int libflags_parsing_contract(void) {
   assert(integer_context && flags_set_text(integer_context, "integer", "9223372036854770000", FLAGS_SOURCE_COMMAND_LINE));
   assert(large_integer == INT64_C(9223372036854770000));
   flags_destroy(integer_context);
+
+  uint16_t port = 0;
+  const flags_option_spec_t port_option = {.name = "port",
+                                           .type = FLAGS_TYPE_PORT,
+                                           .argument_requirement = FLAGS_ARGUMENT_REQUIRED,
+                                           .storage_offset = 0,
+                                           .storage_size = sizeof port};
+  const flags_schema_t port_schema = {.options = &port_option, .option_count = 1};
+  flags_context_t *port_context = flags_create(&port_schema, &port, sizeof port);
+  flags_parse_result_t port_result;
+  char *inline_port[] = {"prog", "--port=27224"};
+  assert(port_context && flags_parse(port_context, 2, inline_port, &port_result) && port == 27224);
+  port = 0;
+  char *separate_port[] = {"prog", "--port", "27224"};
+  assert(flags_parse(port_context, 3, separate_port, &port_result) && port == 27224);
+  char *missing_port[] = {"prog", "--port"};
+  assert(!flags_parse(port_context, 2, missing_port, &port_result));
+  flags_destroy(port_context);
+
   narrow_values_t narrow_values = {0};
   const flags_option_spec_t narrow_options[] = {{.name = "value", .type = FLAGS_TYPE_INT64, .storage_offset = offsetof(narrow_values_t, value), .storage_size = sizeof narrow_values.value},
                                                 {.name = "ratio", .type = FLAGS_TYPE_DOUBLE, .storage_offset = offsetof(narrow_values_t, ratio), .storage_size = sizeof narrow_values.ratio}};
@@ -231,8 +250,8 @@ int libflags_parsing_contract(void) {
   flags_command_t *mirror = flags_command_create(root, "mirror", "mirror mode");
   assert(root && mirror && flags_command_set_default(root, mirror));
   assert(flags_command_set_implicit_for_option(root, mirror, "file"));
-  static const flags_option_spec_t port_option = {.name = "port", .argument_requirement = FLAGS_ARGUMENT_REQUIRED};
-  assert(flags_command_add_option(root, &port_option));
+  static const flags_option_spec_t command_port_option = {.name = "port", .argument_requirement = FLAGS_ARGUMENT_REQUIRED};
+  assert(flags_command_add_option(root, &command_port_option));
   char *command_argv[] = {"prog", "--", "mirror"};
   int command_index = -1;
   bool used_default = false;
