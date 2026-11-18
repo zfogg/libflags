@@ -40,6 +40,10 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: ${{ matrix.arch == 'arm64' && 'arm64' || 'x64' }}
+      - name: Validate Windows build tools
+        if: matrix.os == 'windows'
+        shell: pwsh
+        run: ./scripts/install-deps.ps1
       - name: Build, install, and package
         shell: bash
         run: |

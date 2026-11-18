@@ -121,6 +121,15 @@ if(TARGET libflags-tomlc17)
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
+foreach(_libflags_dependency_target IN ITEMS utf8proc pcre2-8-static yyjson)
+  if(TARGET "${_libflags_dependency_target}")
+    install(TARGETS "${_libflags_dependency_target}" EXPORT libflagsTargets
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+  endif()
+endforeach()
+unset(_libflags_dependency_target)
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 if(EXISTS "${LIBFLAGS_LIBPLATFORM_SOURCE_DIR}/include")
   install(DIRECTORY "${LIBFLAGS_LIBPLATFORM_SOURCE_DIR}/include/"
