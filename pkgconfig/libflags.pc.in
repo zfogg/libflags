@@ -4,8 +4,7 @@ libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
 includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
 
 Name: libflags
-Description: Command-line flags and configuration library
+Description: C flags and options library
 Version: @PROJECT_VERSION@
-Requires.private: libplatform
 Libs: -L${libdir} -lflags
 Cflags: -I${includedir}
