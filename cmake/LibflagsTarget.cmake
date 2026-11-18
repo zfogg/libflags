@@ -6,11 +6,13 @@ function(libflags_configure_target target)
   target_compile_features(${target} PUBLIC c_std_11)
   if(LIBFLAGS_LIBPLATFORM_SOURCE_DIR AND EXISTS "${LIBFLAGS_LIBPLATFORM_SOURCE_DIR}/include")
     target_include_directories(${target} PUBLIC
-      "${LIBFLAGS_LIBPLATFORM_SOURCE_DIR}/include")
+      $<BUILD_INTERFACE:${LIBFLAGS_LIBPLATFORM_SOURCE_DIR}/include>
+      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
   endif()
   if(LIBFLAGS_TOMLC17_SOURCE_DIR AND EXISTS "${LIBFLAGS_TOMLC17_SOURCE_DIR}/src")
     target_include_directories(${target} PUBLIC
-      "${LIBFLAGS_TOMLC17_SOURCE_DIR}/src")
+      $<BUILD_INTERFACE:${LIBFLAGS_TOMLC17_SOURCE_DIR}/src>
+      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
   endif()
   # These implementation dependencies must remain transitive for static
   # consumers, but their usage requirements must not become compile includes

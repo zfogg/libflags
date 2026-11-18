@@ -7,6 +7,7 @@ project(libflags VERSION 0.1.0 LANGUAGES C CXX)
 include(${CMAKE_CURRENT_SOURCE_DIR}/deps/cmake-utils/CacheLauncher.cmake)
 cmake_utils_configure_cache_launcher()
 include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 include(FetchContent)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/LibflagsDependencies.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/LibflagsTarget.cmake)
@@ -65,7 +66,9 @@ endif()
 set(LIBFLAGS_TOMLC17_SOURCE_DIR "${LIBFLAGS_SOURCE_DIR}/deps/tomlc17" CACHE PATH "Existing tomlc17 source tree")
 if(LIBFLAGS_TOMLC17_SOURCE_DIR AND EXISTS "${LIBFLAGS_TOMLC17_SOURCE_DIR}/src/tomlc17.c")
   add_library(libflags-tomlc17 ${_libflags_library_type} "${LIBFLAGS_TOMLC17_SOURCE_DIR}/src/tomlc17.c")
-  target_include_directories(libflags-tomlc17 PUBLIC "${LIBFLAGS_TOMLC17_SOURCE_DIR}/src")
+  target_include_directories(libflags-tomlc17 PUBLIC
+    $<BUILD_INTERFACE:${LIBFLAGS_TOMLC17_SOURCE_DIR}/src>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/tomlc17>)
 else()
   FetchContent_Declare(tomlc17
     GIT_REPOSITORY https://github.com/cktan/tomlc17.git
@@ -74,7 +77,9 @@ else()
   FetchContent_MakeAvailable(tomlc17)
   if(NOT TARGET libflags-tomlc17)
     add_library(libflags-tomlc17 ${_libflags_library_type} "${tomlc17_SOURCE_DIR}/src/tomlc17.c")
-    target_include_directories(libflags-tomlc17 PUBLIC "${tomlc17_SOURCE_DIR}/src")
+    target_include_directories(libflags-tomlc17 PUBLIC
+      $<BUILD_INTERFACE:${tomlc17_SOURCE_DIR}/src>
+      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/tomlc17>)
   endif()
 endif()
 unset(_libflags_library_type)
@@ -94,6 +99,49 @@ if(NOT LIBFLAGS_UTF8PROC_TARGET)
 endif()
 add_subdirectory(lib)
 add_subdirectory(tests)
-install(TARGETS flags EXPORT libflagsTargets ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(TARGETS flags EXPORT libflagsTargets
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+if(TARGET libplatform)
+  install(TARGETS libplatform EXPORT libflagsTargets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif()
+if(TARGET libplatform-utf8proc)
+  install(TARGETS libplatform-utf8proc EXPORT libflagsTargets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif()
+if(TARGET libflags-tomlc17)
+  install(TARGETS libflags-tomlc17 EXPORT libflagsTargets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif()
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+if(EXISTS "${LIBFLAGS_TOMLC17_SOURCE_DIR}/src/tomlc17.h")
+  install(FILES "${LIBFLAGS_TOMLC17_SOURCE_DIR}/src/tomlc17.h"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/tomlc17")
+endif()
+install(EXPORT libflagsTargets NAMESPACE libflags::
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/libflags)
+configure_package_config_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/libflagsConfig.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/libflagsConfig.cmake"
+  INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/libflags")
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/libflagsConfigVersion.cmake"
+  COMPATIBILITY SameMajorVersion)
+install(FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/libflagsConfig.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/libflagsConfigVersion.cmake"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/libflags")
+install(FILES LICENSE DESTINATION "${CMAKE_INSTALL_DATADIR}/libflags")
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake/libflags.pc.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/libflags.pc" @ONLY)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/libflags.pc"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 
