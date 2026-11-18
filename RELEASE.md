@@ -11,4 +11,6 @@ directory and use `find_package(libflags CONFIG REQUIRED)`, then link
 
 Static consumers must also link the platform and bundled dependency libraries
 listed by their toolchain; shared consumers need the matching runtime library
-directory on their platform's loader path.
+directory on their platform's loader path. Use the same compiler/runtime family
+used to build the archive (MSVC-compatible Clang/ MSVC libraries are not
+link-compatible with MinGW GCC libraries).
