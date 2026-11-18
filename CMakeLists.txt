@@ -96,7 +96,7 @@ if(NOT LIBFLAGS_UTF8PROC_TARGET)
 endif()
 add_subdirectory(lib)
 add_subdirectory(tests)
-install(TARGETS flags EXPORT libflagsTargets
+install(TARGETS libflags EXPORT libflagsTargets
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

@@ -18,9 +18,9 @@ set(LIBFLAGS_SOURCES
   manpage/parser.c
 )
 
-add_library(flags ${LIBFLAGS_SOURCES})
-add_library(libflags::flags ALIAS flags)
-set_target_properties(flags PROPERTIES
+add_library(libflags ${LIBFLAGS_SOURCES})
+add_library(libflags::libflags ALIAS libflags)
+set_target_properties(libflags PROPERTIES
   POSITION_INDEPENDENT_CODE ON
   WINDOWS_EXPORT_ALL_SYMBOLS ON)
-libflags_configure_target(flags)
+libflags_configure_target(libflags)

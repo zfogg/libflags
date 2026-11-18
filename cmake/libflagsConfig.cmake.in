@@ -2,8 +2,4 @@
 
 include("${CMAKE_CURRENT_LIST_DIR}/libflagsTargets.cmake")
 
-if(TARGET libflags::flags AND NOT TARGET libflags::libflags)
-  add_library(libflags::libflags ALIAS libflags::flags)
-endif()
-
 check_required_components(libflags)
