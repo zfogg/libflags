@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
 cmake_policy(SET CMP0131 NEW)
-if(NOT DEFINED CMAKE_C_COMPILER)
-  set(CMAKE_C_COMPILER clang CACHE FILEPATH "C compiler")
-endif()
 project(libflags VERSION 0.1.0 LANGUAGES C CXX)
 include(${CMAKE_CURRENT_SOURCE_DIR}/deps/cmake-utils/CacheLauncher.cmake)
 cmake_utils_configure_cache_launcher()
