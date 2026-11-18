@@ -45,9 +45,13 @@ function(libflags_configure_pcre2)
   # Preserve fetched PCRE2 as a logical CMake target; its output filename is
   # generator- and configuration-dependent.
   if(TARGET pcre2-8-static)
+    set(LIBFLAGS_PCRE2_TARGET pcre2-8-static)
     set(LIBFLAGS_PCRE2_TARGET pcre2-8-static PARENT_SCOPE)
+    return()
   elseif(TARGET pcre2-8)
+    set(LIBFLAGS_PCRE2_TARGET pcre2-8)
     set(LIBFLAGS_PCRE2_TARGET pcre2-8 PARENT_SCOPE)
+    return()
   endif()
 
   if(LIBFLAGS_PCRE2_INCLUDE_DIRS AND LIBFLAGS_PCRE2_LIBRARIES
