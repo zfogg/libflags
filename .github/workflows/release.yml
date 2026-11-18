@@ -60,6 +60,7 @@ jobs:
             cmake --install "build-$linkage" --prefix "$PWD/package/$linkage"
           done
           cp LICENSE package/
+          cp RELEASE.md package/README.md
           if [ '${{ matrix.os }}' = windows ]; then
             (cd package && 7z a "../libflags-${{ matrix.os }}-${{ matrix.arch }}.zip" .)
           else
