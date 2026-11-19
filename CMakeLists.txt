@@ -5,9 +5,6 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/deps/cmake-utils/CacheLauncher.cmake)
 cmake_utils_configure_cache_launcher()
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
-include(FetchContent)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/LibflagsDependencies.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/LibflagsTarget.cmake)
 set(LIBFLAGS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Embedders may provide a shared dependency source cache. Standalone libflags
@@ -22,6 +19,11 @@ if(NOT DEFINED LIBFLAGS_DEPS_CACHE_ROOT)
 endif()
 set(LIBFLAGS_DEPS_CACHE_ROOT "${LIBFLAGS_DEPS_CACHE_ROOT}" CACHE PATH
     "Dependency source cache used when libflags is built standalone")
+include(FetchContent)
+set(FETCHCONTENT_BASE_DIR "${LIBFLAGS_DEPS_CACHE_ROOT}" CACHE PATH
+    "FetchContent cache used by libflags dependencies" FORCE)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/LibflagsDependencies.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/LibflagsTarget.cmake)
 set(LIBFLAGS_LIBPLATFORM_SOURCE_DIR "${LIBFLAGS_SOURCE_DIR}/deps/libplatform" CACHE PATH
     "Existing libplatform source tree")
 set(LIBFLAGS_PCRE2_INCLUDE_DIRS "" CACHE STRING "PCRE2 include directories supplied by the embedding project")
