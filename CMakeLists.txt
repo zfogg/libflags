@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 cmake_policy(SET CMP0131 NEW)
-project(libflags VERSION 0.1.11 LANGUAGES C CXX)
+project(libflags VERSION 0.1.12 LANGUAGES C CXX)
 include(${CMAKE_CURRENT_SOURCE_DIR}/deps/cmake-utils/CacheLauncher.cmake)
 cmake_utils_configure_cache_launcher()
 include(GNUInstallDirs)
