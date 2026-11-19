@@ -4,6 +4,10 @@ function(libflags_configure_target target)
       $<BUILD_INTERFACE:${LIBFLAGS_SOURCE_DIR}/include>
       $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
   target_compile_features(${target} PUBLIC c_std_11)
+  if(MSVC)
+    target_compile_options(${target} PRIVATE
+      "$<$<COMPILE_LANGUAGE:C>:/experimental:c11atomics>")
+  endif()
   if(LIBFLAGS_LIBPLATFORM_SOURCE_DIR AND EXISTS "${LIBFLAGS_LIBPLATFORM_SOURCE_DIR}/include")
     target_include_directories(${target} PUBLIC
       $<BUILD_INTERFACE:${LIBFLAGS_LIBPLATFORM_SOURCE_DIR}/include>
