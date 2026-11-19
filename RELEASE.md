@@ -6,7 +6,7 @@ CMake package, pkg-config file, and licenses.
 
 For CMake, set `CMAKE_PREFIX_PATH` to the extracted `static` or `shared`
 directory and use `find_package(libflags CONFIG REQUIRED)`, then link
-`libflags::flags`. For pkg-config, set `PKG_CONFIG_PATH` to that directory's
+`libflags::libflags`. For pkg-config, set `PKG_CONFIG_PATH` to that directory's
 `lib/pkgconfig` folder and request `libflags`.
 
 Static consumers must also link the platform and bundled dependency libraries
