@@ -6,6 +6,7 @@ cmake_utils_configure_cache_launcher()
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 set(LIBFLAGS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+option(LIBFLAGS_ENABLE_INSTALL "Generate install rules for libflags" ON)
 
 # Embedders may provide a shared dependency source cache. Standalone libflags
 # keeps generated/fetched dependency state in its own build tree instead of
@@ -105,6 +106,7 @@ if(NOT LIBFLAGS_UTF8PROC_TARGET)
 endif()
 add_subdirectory(lib)
 add_subdirectory(tests)
+if(LIBFLAGS_ENABLE_INSTALL)
 install(TARGETS libflags EXPORT libflagsTargets
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -163,4 +165,5 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/pkgconfig/libflags.pc.in"
   "${CMAKE_CURRENT_BINARY_DIR}/libflags.pc" @ONLY)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/libflags.pc"
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+endif()
 
