@@ -6,7 +6,6 @@ cmake_utils_configure_cache_launcher()
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 set(LIBFLAGS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
-option(LIBFLAGS_ENABLE_INSTALL "Generate install rules for libflags" ON)
 
 # Embedders may provide a shared dependency source cache. Standalone libflags
 # keeps generated/fetched dependency state in its own build tree instead of
@@ -106,32 +105,43 @@ if(NOT LIBFLAGS_UTF8PROC_TARGET)
 endif()
 add_subdirectory(lib)
 add_subdirectory(tests)
-if(LIBFLAGS_ENABLE_INSTALL)
-install(TARGETS libflags EXPORT libflagsTargets
+if(PROJECT_IS_TOP_LEVEL)
+  set(_libflags_export_args EXPORT libflagsTargets)
+else()
+  set(_libflags_export_args)
+endif()
+if(PROJECT_IS_TOP_LEVEL)
+install(TARGETS libflags ${_libflags_export_args}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+else()
+install(TARGETS libflags
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif()
 if(TARGET libplatform)
-  install(TARGETS libplatform EXPORT libflagsTargets
+  install(TARGETS libplatform ${_libflags_export_args}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 if(TARGET libplatform-utf8proc)
-  install(TARGETS libplatform-utf8proc EXPORT libflagsTargets
+  install(TARGETS libplatform-utf8proc ${_libflags_export_args}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 if(TARGET libflags-tomlc17)
-  install(TARGETS libflags-tomlc17 EXPORT libflagsTargets
+  install(TARGETS libflags-tomlc17 ${_libflags_export_args}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 foreach(_libflags_dependency_target IN ITEMS utf8proc pcre2-8-static yyjson)
   if(TARGET "${_libflags_dependency_target}")
-    install(TARGETS "${_libflags_dependency_target}" EXPORT libflagsTargets
+    install(TARGETS "${_libflags_dependency_target}" ${_libflags_export_args}
       ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
       LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
@@ -147,6 +157,7 @@ if(EXISTS "${LIBFLAGS_TOMLC17_SOURCE_DIR}/src/tomlc17.h")
   install(FILES "${LIBFLAGS_TOMLC17_SOURCE_DIR}/src/tomlc17.h"
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/tomlc17")
 endif()
+if(PROJECT_IS_TOP_LEVEL)
 install(EXPORT libflagsTargets NAMESPACE libflags::
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/libflags)
 configure_package_config_file(
